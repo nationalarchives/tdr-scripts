@@ -5,6 +5,7 @@ locals {
     "Environment", local.environment,
     "Owner", "TDR",
     "Terraform", true,
+    "TerraformSource", "https://github.com/nationalarchives/tdr-scripts/tree/master/terraform/bastion",
     "CostCentre", data.aws_ssm_parameter.cost_centre.value,
   )
 }
