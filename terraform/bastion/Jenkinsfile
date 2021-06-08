@@ -43,7 +43,7 @@ pipeline {
     stage('Create user if creating bastion') {
       when {
         beforeAgent true
-        expression { params.COMMAND == "destroy" }
+        expression { params.COMMAND == "apply" }
       }
       agent {
         ecs {
