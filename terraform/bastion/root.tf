@@ -68,7 +68,7 @@ module "bastion_ec2_instance" {
   environment         = local.environment
   name                = "bastion"
   user_data           = "user_data_postgres"
-  user_data_variables = { db_host = split(":", data.aws_db_instance.instance.endpoint)[0], db_username = data.aws_ssm_parameter.database_username.value, db_password = data.aws_ssm_parameter.database_password.value, account_number = data.aws_caller_identity.current.account_id, environment = title(local.environment) }
+  user_data_variables = { account_number = data.aws_caller_identity.current.account_id, environment = title(local.environment) }
   ami_id              = module.bastion_ami.encrypted_ami_id
   security_group_id   = data.aws_security_group.db_security_group.id
   subnet_id           = data.aws_subnet.private_subnet.id
