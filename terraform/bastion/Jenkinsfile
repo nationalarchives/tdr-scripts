@@ -20,7 +20,7 @@ pipeline {
     }
     stage('Delete user if destroying bastion') {
       when {
-        beforeAgent: true
+        beforeAgent true
         expression { params.COMMAND == "destroy" }
       }
       agent {
@@ -42,7 +42,7 @@ pipeline {
     }
     stage('Create user if creating bastion') {
       when {
-        beforeAgent: true
+        beforeAgent true
         expression { params.COMMAND == "destroy" }
       }
       agent {
