@@ -20,6 +20,7 @@ pipeline {
     }
     stage('Delete user if destroying bastion') {
       when {
+        beforeAgent: true
         expression { params.COMMAND == "destroy" }
       }
       agent {
@@ -33,7 +34,29 @@ pipeline {
           steps {
             script {
               def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
-              sh "python3 /run_ssm_command.py ${accountNumber} intg bastion-ec2-instance-${params.STAGE} deleteuser"
+              sh "python3 /run_ssm_command.py ${accountNumber} ${params.STAGE} bastion-ec2-instance-${params.STAGE} deleteuser"
+            }
+          }
+        }
+      }
+    }
+    stage('Create user if creating bastion') {
+      when {
+        beforeAgent: true
+        expression { params.COMMAND == "destroy" }
+      }
+      agent {
+        ecs {
+          inheritFrom 'aws'
+          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsNodeLambdaRole${params.STAGE.capitalize()}"
+        }
+      }
+      stages {
+        stage('Run create user lambda') {
+          steps {
+            script {
+              def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
+              sh "python3 /invoke_lambda.py ${accountNumber} ${params.STAGE} tdr-create-bastion-user-${params.STAGE}"
             }
           }
         }
