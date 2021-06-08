@@ -13,6 +13,7 @@ locals {
     "Environment", var.environment,
     "Owner", "TDR",
     "Terraform", true,
+    "TerraformSource", "https://github.com/nationalarchives/tdr-scripts/tree/master/terraform/keycloak-sandbox",
     "CostCentre", data.aws_ssm_parameter.cost_centre.value
   )
 }
