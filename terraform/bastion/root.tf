@@ -55,6 +55,11 @@ resource "aws_iam_policy" "jenkins_describe_ec2_policy" {
   policy = templatefile("${path.module}/templates/run_ec2_describe.json.tpl", {})
 }
 
+resource "aws_iam_role_policy_attachment" "jenkins_describe_ec2_attach" {
+  policy_arn = aws_iam_policy.jenkins_describe_ec2_policy.arn
+  role       = aws_iam_role.jenkins_describe_ec2_role.id
+}
+
 resource "aws_iam_role_policy_attachment" "tdr_jenkins_run_ssm_attach" {
   policy_arn = aws_iam_policy.tdr_jenkins_run_ssm_document_policy.arn
   role       = aws_iam_role.tdr_jenkins_run_ssm_document_role.id
