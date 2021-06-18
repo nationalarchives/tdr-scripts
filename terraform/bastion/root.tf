@@ -50,6 +50,17 @@ resource "aws_iam_role_policy_attachment" "tdr_jenkins_run_ssm_attach" {
   role       = aws_iam_role.tdr_jenkins_run_ssm_document_role.id
 }
 
+module "bastion_ami" {
+  source      = "./tdr-terraform-modules/ami"
+  project     = var.project
+  function    = "bastion-ec2"
+  environment = local.environment
+  common_tags = local.common_tags
+  region      = var.default_aws_region
+  kms_key_id  = module.encryption_key.kms_key_arn
+  source_ami  = data.aws_ami.amazon_linux_ami.id
+}
+
 
 module "bastion_ec2_instance" {
   source              = "./tdr-terraform-modules/ec2"
@@ -57,10 +68,9 @@ module "bastion_ec2_instance" {
   environment         = local.environment
   name                = "bastion"
   user_data           = "user_data_postgres"
-  user_data_variables = { db_host = split(":", data.aws_db_instance.instance.endpoint)[0], db_username = data.aws_ssm_parameter.database_username.value, db_password = data.aws_ssm_parameter.database_password.value, account_number = data.aws_caller_identity.current.account_id, environment = title(local.environment) }
-  ami_id              = data.aws_ami.amazon_linux_ami.id
+  user_data_variables = { db_host = split(":", data.aws_db_instance.instance.endpoint)[0], account_number = data.aws_caller_identity.current.account_id, environment = title(local.environment) }
+  ami_id              = module.bastion_ami.encrypted_ami_id
   security_group_id   = data.aws_security_group.db_security_group.id
-  kms_arn             = module.encryption_key.kms_key_arn
   subnet_id           = data.aws_subnet.private_subnet.id
   public_key          = var.public_key
 }
