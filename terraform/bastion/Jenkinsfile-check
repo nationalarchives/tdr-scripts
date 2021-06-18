@@ -17,9 +17,6 @@ pipeline {
       }
     }
     stage('Destroy bastion if the instance is older than 7 days') {
-      when {
-        beforeAgent true
-      }
       agent {
         ecs {
           inheritFrom 'aws'
