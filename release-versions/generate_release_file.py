@@ -15,6 +15,7 @@ def url(repo, suffix):
 
 def get_versions(repository_name):
     branches = requests.get(url(repository_name, "branches"), headers = headers).json()
+    print(branches)
     filtered_release_branches = dict(ChainMap(*[{branch["name"]: branch} for branch in branches if
                                                 branch["name"] in ["release-intg", "release-staging", "release-prod"]]))
 
