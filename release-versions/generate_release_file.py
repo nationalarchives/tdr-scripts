@@ -14,20 +14,19 @@ def url(repo, suffix):
 
 
 def get_versions(repository_name):
-    print(url(repository_name, "branches"))
     branches = requests.get(url(repository_name, "branches"), headers = headers).json()
-    print(branches)
-    filtered_release_branches = dict(ChainMap(*[{branch["name"]: branch} for branch in branches if
-                                                branch["name"] in ["release-intg", "release-staging", "release-prod"]]))
+    if "message" not in branches:
+      filtered_release_branches = dict(ChainMap(*[{branch["name"]: branch} for branch in branches if
+                                                  branch["name"] in ["release-intg", "release-staging", "release-prod"]]))
 
-    print(filtered_release_branches)
-    if len(filtered_release_branches) > 0:
-        tags = requests.get(url(repo, "tags"), headers = headers).json()
-        intg_version = get_version_for_stage(tags, filtered_release_branches["release-intg"])
-        staging_version = get_version_for_stage(tags, filtered_release_branches["release-staging"])
-        prod_version = get_version_for_stage(tags, filtered_release_branches["release-prod"])
-        return {"repository": repository_name, "intg_version": intg_version, "staging_version": staging_version,
-                "prod_version": prod_version}
+      print(filtered_release_branches)
+      if len(filtered_release_branches) > 0:
+          tags = requests.get(url(repo, "tags"), headers = headers).json()
+          intg_version = get_version_for_stage(tags, filtered_release_branches["release-intg"])
+          staging_version = get_version_for_stage(tags, filtered_release_branches["release-staging"])
+          prod_version = get_version_for_stage(tags, filtered_release_branches["release-prod"])
+          return {"repository": repository_name, "intg_version": intg_version, "staging_version": staging_version,
+                  "prod_version": prod_version}
 
 
 def get_version_for_stage(tags, release_branch):
