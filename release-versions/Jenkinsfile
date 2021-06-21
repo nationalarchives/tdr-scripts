@@ -1,0 +1,28 @@
+ipipeline {
+    agent {
+        label "master"
+    }
+
+    stages {
+        stage('Generate releases page') {
+            steps {
+                script {
+                    withCredentials([string(credentialsId: 'github-jenkins-api-key', variable: 'GITHUB_API_TOKEN')]) {
+                      dir("release-versions") {
+                        sh "pip install quik"
+                        sh "python3 generate_release_file.py"
+                      }
+                    }
+                    publishHTML (target: [
+                      allowMissing: false,
+                      alwaysLinkToLastBuild: false,
+                      keepAll: true,
+                      reportFiles: 'release-versions/output.html',
+                      reportName: "Release Version Report"
+                    ])
+                }
+                
+            }
+        }
+    }
+}
