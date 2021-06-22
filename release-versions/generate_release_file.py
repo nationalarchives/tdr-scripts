@@ -19,7 +19,6 @@ def get_versions(repository_name):
       filtered_release_branches = dict(ChainMap(*[{branch["name"]: branch} for branch in branches if
                                                   branch["name"] in ["release-intg", "release-staging", "release-prod"]]))
 
-      print(filtered_release_branches)
       if len(filtered_release_branches) > 0:
           tags = requests.get(url(repo, "tags"), headers = headers).json()
           intg_version = get_version_for_stage(tags, filtered_release_branches["release-intg"])
