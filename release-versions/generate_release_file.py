@@ -29,11 +29,11 @@ def get_versions(repository_name):
 
             return {"repository": repository_name,
                     "intg": {"version": intg_version,
-                             "data_class": "table-success" if intg_version == max_version else "table-danger"},
+                             "data_class": "table-success" if intg_version == max_version else "table-danger fw-bold"},
                     "staging": {"version": staging_version,
-                                "data_class": "table-success" if staging_version == max_version else "table-danger"},
+                                "data_class": "table-success" if staging_version == max_version else "table-danger fw-bold"},
                     "prod": {"version": prod_version,
-                             "data_class": "table-success" if staging_version == max_version else "table-danger"},
+                             "data_class": "table-success" if staging_version == max_version else "table-danger fw-bold"},
                     }
 
 
