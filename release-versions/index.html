@@ -1,5 +1,5 @@
 <html>
-<link href="https://@host.tdr-management.nationalarchives.gov.uk/userContent/bootstrap.min.css" rel="stylesheet">
+<link href="https://@{host}.tdr-management.nationalarchives.gov.uk/userContent/bootstrap.min.css" rel="stylesheet">
   <div class="container">
       <table class="table table-striped">
     <thead>
@@ -14,9 +14,9 @@
   #for @release in @releases:
     <tr>
         <td>@release.repository</td>
-        <td>@release.intg_version</td>
-        <td>@release.staging_version</td>
-        <td>@release.prod_version</td>
+        <td class="@release.intg.data_class">@release.intg.version</td>
+        <td class="@release.intg.data_class">@release.staging.version</td>
+        <td class="@release.intg.data_class">@release.prod.version</td>
     </tr>
   #end
   </tbody>

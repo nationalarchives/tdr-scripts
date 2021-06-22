@@ -9,6 +9,7 @@ pipeline {
                 script {
                     withCredentials([string(credentialsId: 'github-jenkins-api-key', variable: 'GITHUB_API_TOKEN')]) {
                       dir("release-versions") {
+                        sh "wget https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css -O /var/jenkins_home/userContent/bootstrap.min.js"
                         sh "pip install quik"
                         sh "python3 generate_release_file.py"
                       }
