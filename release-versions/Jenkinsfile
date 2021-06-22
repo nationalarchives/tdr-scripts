@@ -17,6 +17,7 @@ pipeline {
                       allowMissing: false,
                       alwaysLinkToLastBuild: false,
                       keepAll: true,
+                      reportDir: "release-versions",
                       reportFiles: 'release-versions/output.html',
                       reportName: "Release Version Report"
                     ])
