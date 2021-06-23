@@ -28,12 +28,21 @@ def get_versions(repository_name):
             max_version = max([intg_version, staging_version, prod_version])
 
             return {"repository": repository_name,
-                    "intg": {"version": intg_version,
-                             "data_class": "table-success" if intg_version == max_version else "table-danger fw-bold"},
+                    "integration": {"version": intg_version,
+                                    "data_class":
+                                        "table-success" if intg_version == max_version else "table-danger fw-bold",
+                                    "out_of_date": intg_version != max_version
+                                    },
                     "staging": {"version": staging_version,
-                                "data_class": "table-success" if staging_version == max_version else "table-danger fw-bold"},
-                    "prod": {"version": prod_version,
-                             "data_class": "table-success" if prod_version == max_version else "table-danger fw-bold"},
+                                "data_class":
+                                    "table-success" if staging_version == max_version else "table-danger fw-bold",
+                                "out_of_date": staging_version != max_version
+                                },
+                    "production": {"version": prod_version,
+                                   "data_class":
+                                       "table-success" if prod_version == max_version else "table-danger fw-bold",
+                                   "out_of_date": prod_version != max_version
+                                   },
                     }
 
 
@@ -46,11 +55,38 @@ def get_version_for_stage(tags, release_branch):
         return ""
 
 
+def append_section(message, text):
+    message["blocks"].append({
+        "type": "section",
+        "text": {
+            "type": "mrkdwn",
+            "text": text
+        }
+    })
+
+
+def append_header(message, text):
+    message["blocks"].append(
+        {
+            "type": "header",
+            "text": {
+                "type": "plain_text",
+                "text": text,
+                "emoji": True
+            }
+        }
+    )
+
+
+def add_stage_info(message, stage):
+    append_section(message, f"{stage.title()} version {out_of_date_release[stage]['version']}")
+
+
 loader = FileLoader(".")
 template = loader.load_template('index.html')
 repos = requests.get("https://api.github.com/orgs/nationalarchives/teams/transfer-digital-records/repos?per_page=100",
                      headers=headers).json()
-filtered_repos = [repo["name"] for repo in repos if not repo["archived"] and not repo["disabled"]]
+filtered_repos = sorted([repo["name"] for repo in repos if not repo["archived"] and not repo["disabled"]])
 
 for repo in filtered_repos:
     versions = get_versions(repo)
@@ -58,3 +94,21 @@ for repo in filtered_repos:
         releases.append(versions)
 with open("output.html", "w") as output:
     output.write(template.render({'host': os.environ["HOST"], 'releases': releases}, loader=loader))
+
+slack_message = {"blocks": []}
+
+append_section(slack_message, "The following repositories have out of date versions")
+slack_message["blocks"].append({"type": "divider"})
+
+out_of_date_releases = [release for release in releases if
+                        release["staging"]["out_of_date"] or release["production"]["out_of_date"]]
+for out_of_date_release in out_of_date_releases:
+    append_header(slack_message, out_of_date_release["repository"])
+    add_stage_info(slack_message, "integration")
+    add_stage_info(slack_message, "staging")
+    add_stage_info(slack_message, "production")
+    slack_message["blocks"].append({"type": "divider"})
+
+append_section(slack_message, f"<{os.environ['BUILD_URL']}|Click for the report>")
+
+requests.post(os.environ["SLACK_URL"], json=slack_message)
