@@ -16,7 +16,7 @@ pipeline {
         }
       }
     }
-    stage('Destroy bastion if the instance is older than 7 days') {
+    stage('Destroy bastion if the instance is older than 1 day') {
       agent {
         ecs {
           inheritFrom 'aws'
@@ -28,7 +28,7 @@ pipeline {
           steps {
             script {
               def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
-              def tooOld = sh(script: "python3 /check_ec2_instance_age.py ${accountNumber} ${params.STAGE} bastion-ec2-instance-${params.STAGE} 7", returnStdout: true).trim()
+              def tooOld = sh(script: "python3 /check_ec2_instance_age.py ${accountNumber} ${params.STAGE} bastion-ec2-instance-${params.STAGE} 1", returnStdout: true).trim()
               if(tooOld == "True") {
                 build(
                     job: "TDR Bastion Deploy",
@@ -45,9 +45,19 @@ pipeline {
     }
   }
   post {
-    always {
-      echo 'Deleting Jenkins workspace...'
-      deleteDir()
+    failure {
+      script {
+        tdr.postToDaTdrSlackChannel(colour: "danger",
+            message: "*Bastion delete script* :warning: The script to delete the bastion on ${params.STAGE} has failed"
+        )
+      }
+    }
+    success {
+      script {
+        tdr.postToDaTdrSlackChannel(colour: "good",
+            message: "*Bastion delete script* The bastion for ${params.STAGE} has been deleted"
+        )
+      }
     }
   }
 }
