@@ -9,5 +9,9 @@ variable "restore_time" {
 }
 
 variable "cluster_identifier" {
-  default = "The cluster identifier. See the README for how to find this"
+  description = "The cluster identifier. See the README for how to find this"
+}
+
+variable "engine_version" {
+  description = "The version of the new cluster. See the README for how to find this"
 }

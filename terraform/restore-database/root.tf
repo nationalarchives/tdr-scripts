@@ -27,12 +27,12 @@ resource "aws_rds_cluster" "db_restore_cluster" {
   tags                                = local.common_tags
 }
 
-resource "aws_rds_cluster_instance" "atabase_instance" {
+resource "aws_rds_cluster_instance" "database_instance" {
   count                = 1
   identifier_prefix    = "db-postgres-instance-${local.environment}"
   cluster_identifier   = aws_rds_cluster.db_restore_cluster.id
   engine               = "aurora-postgresql"
-  engine_version       = "11.9"
+  engine_version       = var.engine_version
   instance_class       = "db.t3.medium"
   db_subnet_group_name = data.aws_db_subnet_group.subnet_group.name
 }

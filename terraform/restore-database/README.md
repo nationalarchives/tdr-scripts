@@ -1,22 +1,36 @@
 # Restore a database
 
-This script creates a replica of an existing rds database from a snapshot. It also updates the database url parameter in the parameter store to point to the new   
+This script creates a replica of an existing rds database from a snapshot. It also updates the database url parameter in the parameter store to point to the new database cluster.
+
+This script is intended to be used to recover lost data in an emergency if it has been accidentally deleted, or major problem has affected the main database.
+
+Any changes that affect the production database should be made by two people, either sitting together or screen sharing. This is to help prevent mistakes and for accountability.
 
 ## Create the replica
 `export TF_VAR_database=consignment-api` or `export TF_VAR_database=keycloak`
 
+Set a helper variable as some fields need `consignmentapi` and some need `consignment-api`
+
+`export DB_NO_DASH=$(echo $TF_VAR_database | sed  's/-//g')`
+
+If you want to restore to a particular point in time instead of from the most recent snapshot you can set the `TF_VAR_restore_time` environment variable to a date and time in UTC format. To get the earliest and latest available times
 
 ```
+aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].[LatestRestorableTime, EarliestRestorableTime]" --output table
+```
+
+Run terraform
+```
 export TF_VAR_tdr_account_number=xxxxxxxxxxx
-export DB_NO_DASH=$(echo $TF_VAR_database | sed  's/-//g')
 export TF_VAR_cluster_identifier=$(aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].DBClusterIdentifier" --output text)
+export TF_VAR_engine_version=$(aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].EngineVersion" --output text)
 export PROFILE=intg # replace with staging or prod if using those environments
 
 terraform init
 terraform apply
 ```
 
-The restore may take 10-15 minutes depending on the size of the database when you run this.
+The restore may take 10-15 minutes depending on the size of the database when you run this. Terraform won't exit until the cluster is created.
 
 ## Restart the service to pick up the new database
 This only needs to be run if you want to switch the API over to the new database cluster. If you're only planning to manually move the SQL over from the new cluster then this step can be skipped.
