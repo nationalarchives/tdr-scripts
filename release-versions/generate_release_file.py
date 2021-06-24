@@ -109,6 +109,6 @@ for out_of_date_release in out_of_date_releases:
     add_stage_info(slack_message, "production")
     slack_message["blocks"].append({"type": "divider"})
 
-append_section(slack_message, f"<{os.environ['BUILD_URL']}|Click for the report>")
+append_section(slack_message, f"<{os.environ['BUILD_URL']}Release_20Version_20Report/|Click for the report>")
 
 requests.post(os.environ["SLACK_URL"], json=slack_message)
