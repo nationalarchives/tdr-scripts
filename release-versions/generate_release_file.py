@@ -22,7 +22,7 @@ def get_versions(repository_name):
                                                                        "release-prod"]]))
 
         if len(filtered_release_branches) > 0:
-            tags = requests.get(url(repo, "tags"), headers=headers).json()
+            tags = requests.get(url(repository_name, "tags"), headers=headers).json()
 
             intg_sha = filtered_release_branches["release-intg"]["commit"]["sha"]
             staging_sha = filtered_release_branches["release-staging"]["commit"]["sha"]
@@ -32,9 +32,9 @@ def get_versions(repository_name):
             staging_version = get_version_for_stage(tags, staging_sha)
             prod_version = get_version_for_stage(tags, prod_sha)
 
-            intg_date = get_date_for_stage(repo, intg_sha)
-            staging_date = get_date_for_stage(repo, staging_sha)
-            prod_date = get_date_for_stage(repo, prod_sha)
+            intg_date = get_date_for_stage(repository_name, intg_sha)
+            staging_date = get_date_for_stage(repository_name, staging_sha)
+            prod_date = get_date_for_stage(repository_name, prod_sha)
 
             max_version = max([intg_version, staging_version, prod_version])
 
