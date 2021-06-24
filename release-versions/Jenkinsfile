@@ -7,7 +7,7 @@ pipeline {
         stage('Generate releases page') {
             steps {
                 script {
-                    withCredentials([string(credentialsId: 'github-jenkins-api-key', variable: 'GITHUB_API_TOKEN'), string(credentialsId: 'slack-pr-monitor', variable: 'SLACK_URL')]) {
+                    withCredentials([string(credentialsId: 'github-jenkins-api-key', variable: 'GITHUB_API_TOKEN'), string(credentialsId: 'slack-release-channel', variable: 'SLACK_URL')]) {
                       dir("release-versions") {
                         sh "python3 generate_release_file.py"
                       }
