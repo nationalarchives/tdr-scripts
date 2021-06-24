@@ -123,7 +123,7 @@ def create_html_summary():
         if versions is not None:
             releases.append(versions)
     with open("output.html", "w") as output:
-        output.write(template.render({'host': os.environ["HOST"], 'releases': releases}, loader=loader))
+        output.write(template.render({'releases': releases}, loader=loader))
 
 
 def send_slack_message():
