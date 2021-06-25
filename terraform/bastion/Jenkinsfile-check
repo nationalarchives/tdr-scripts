@@ -1,5 +1,6 @@
 library("tdr-jenkinslib")
 def repo = "tdr-scripts"
+def tooOld = "False"
 
 pipeline {
   agent {
@@ -28,7 +29,7 @@ pipeline {
           steps {
             script {
               def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
-              def tooOld = sh(script: "python3 /check_ec2_instance_age.py ${accountNumber} ${params.STAGE} bastion-ec2-instance-${params.STAGE} 1", returnStdout: true).trim()
+              tooOld = sh(script: "python3 /check_ec2_instance_age.py ${accountNumber} ${params.STAGE} bastion-ec2-instance-${params.STAGE} 1", returnStdout: true).trim()
               if(tooOld == "True") {
                 build(
                     job: "TDR Bastion Deploy",
@@ -54,9 +55,11 @@ pipeline {
     }
     success {
       script {
-        tdr.postToDaTdrSlackChannel(colour: "good",
-            message: "*Bastion delete script* The bastion for ${params.STAGE} has been deleted"
-        )
+        if(tooOld == "True") {
+          tdr.postToDaTdrSlackChannel(colour: "good",
+              message: "*Bastion delete script* The bastion for ${params.STAGE} has been deleted"
+          )
+        }
       }
     }
   }
