@@ -4,3 +4,4 @@
 tdr-terraform-modules
 *.tfstate
 *.tfstate.backup
+terraform.tfstate.d
