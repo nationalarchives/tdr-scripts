@@ -38,6 +38,9 @@ pipeline {
                         string(name: "COMMAND", value: "destroy")
                     ],
                     wait: false)
+                tdr.postToDaTdrSlackChannel(colour: "good",
+                    message: "*Bastion delete script* The bastion for ${params.STAGE} has been deleted"
+                )
               }
             }
           }
@@ -51,15 +54,6 @@ pipeline {
         tdr.postToDaTdrSlackChannel(colour: "danger",
             message: "*Bastion delete script* :warning: The script to delete the bastion on ${params.STAGE} has failed"
         )
-      }
-    }
-    success {
-      script {
-        if(tooOld == "True") {
-          tdr.postToDaTdrSlackChannel(colour: "good",
-              message: "*Bastion delete script* The bastion for ${params.STAGE} has been deleted"
-          )
-        }
       }
     }
   }
