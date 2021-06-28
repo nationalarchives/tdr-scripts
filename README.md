@@ -1,7 +1,7 @@
 ## TDR Scripts
 
 This is a repository for scripts which are run infrequently and don't belong with other projects.
-Terraform scripts are put into separate directories inside the terraform directories. Other non-terraform scripts can be organised as and when we need them.
+Terraform scripts are put into separate directories inside the terraform directories. Other non-terraform scripts are kept in their own directory at the root of the project.
 
 ### Bastion host creation script
 This is a terraform script to create a bastion host which can be used to connect to the database.
@@ -83,3 +83,33 @@ results of Docker image upgrades.
 See the [ECR Sandbox Readme](ecr-sandbox) for setup instructions.
 
 [ecr-sandbox]: terraform/ecr-sandbox/README.md
+
+### Generate Release Versions
+
+This is a python script which is run on Jenkins. It generates an html file and a Slack message which show which repositories have out of date versions deployed to the staging and production environments. It does this by looking at the release tags on each of the `release-$environment` branches.
+
+#### Running on Jenkins
+The job to run the script is [here](https://jenkins.tdr-management.nationalarchives.gov.uk/job/Github%20release%20summary/) and when the job is run, it generates [an html file](https://jenkins.tdr-management.nationalarchives.gov.uk/job/Github%20release%20summary/7/Release_20Version_20Report/) like this one. 
+
+#### Running locally
+There is only one dependency outside the standard python library which will need to be installed to run this locally. You can install this system wide by running `pip install quik` but it's better to use a virtual environment.
+You will need to use Python 3. 
+For the Slack url environment variable, you can set it to a real Slack webhook url if you want to send messages to Slack or leave it unset and it will print the Slack message json to console.
+
+```bash
+cd release-versions
+python -m venv venv
+source venv/bin/activate
+pip install quik
+export GITHUB_API_TOKEN=valid_api_token
+python generate_release_file.py
+```
+
+This will print the slack json to the console and generate an output.html file which you can view in a browser. The css comes from Jenkins and gives a 403 error when you try to load it from a local file. If you want to view it with the css, you can replace the `href` in the `<link>` tag in `output.html` to the bootstrap css file `https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css`
+
+#### Cleaning up
+```bash
+deactivate
+rm -r venv
+```
+
