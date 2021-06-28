@@ -3,6 +3,7 @@ from collections import ChainMap
 import requests
 import os
 from datetime import datetime
+import json
 
 releases = []
 
@@ -142,8 +143,11 @@ def send_slack_message():
             add_stage_info(slack_message, out_of_date_release, "production")
             slack_message["blocks"].append({"type": "divider"})
 
-        append_section(slack_message, f"<{os.environ['BUILD_URL']}Release_20Version_20Report/|Click for the report>")
-        requests.post(os.environ["SLACK_URL"], json=slack_message)
+        append_section(slack_message, f"<{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
+        if "SLACK_URL" in os.environ:
+            requests.post(os.environ["SLACK_URL"], json=slack_message)
+        else:
+            print(json.dumps(slack_message))
 
 
 create_html_summary()
