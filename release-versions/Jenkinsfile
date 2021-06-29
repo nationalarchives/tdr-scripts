@@ -1,3 +1,5 @@
+library("tdr-jenkinslib")
+
 pipeline {
   agent {
     label "master"
