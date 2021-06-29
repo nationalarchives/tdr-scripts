@@ -19,7 +19,7 @@ def get_versions(repository_name):
     branches = requests.get(url(repository_name, "branches"), headers=headers).json()
     # If there are no branches found for a repository, you get a message field so we can just ignore those.
     if "message" not in branches:
-        filtered_release_branches = dict(ChainMap(*[{branch["ngame"]: branch} for branch in branches if
+        filtered_release_branches = dict(ChainMap(*[{branch["name"]: branch} for branch in branches if
                                                     branch["name"] in ["release-intg", "release-staging",
                                                                        "release-prod"]]))
 
