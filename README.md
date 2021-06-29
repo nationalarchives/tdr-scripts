@@ -100,7 +100,7 @@ For the Slack url environment variable, you can set it to a real Slack webhook u
 cd release-versions
 python -m venv venv
 source venv/bin/activate
-pip install quik
+pip install -r requirements.txt
 export GITHUB_API_TOKEN=valid_api_token
 python generate_release_file.py
 ```
