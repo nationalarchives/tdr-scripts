@@ -89,7 +89,7 @@ See the [ECR Sandbox Readme](ecr-sandbox) for setup instructions.
 This is a python script which is run on Jenkins. It generates an html file and a Slack message which show which repositories have out of date versions deployed to the staging and production environments. It does this by looking at the release tags on each of the `release-$environment` branches.
 
 #### Running on Jenkins
-The job to run the script is [here](https://jenkins.tdr-management.nationalarchives.gov.uk/job/Github%20release%20summary/) and when the job is run, it generates [an html file](https://jenkins.tdr-management.nationalarchives.gov.uk/job/Github%20release%20summary/7/Release_20Version_20Report/) like this one. 
+The job to run the script is [here](https://jenkins.tdr-management.nationalarchives.gov.uk/job/Github%20release%20summary/) and when the job is run, it generates [an html file](https://jenkins.tdr-management.nationalarchives.gov.uk/job/Github%20release%20summary/Release_20Version_20Report/) like this one. 
 
 #### Running locally
 There is only one dependency outside the standard python library which will need to be installed to run this locally. You can install this system wide by running `pip install quik` but it's better to use a virtual environment.
