@@ -5,7 +5,9 @@ resource "aws_alb" "keycloak" {
 
   tags = merge(
     local.common_tags,
-    map("Name", "keycloak-${var.environment}")
+    tomap(
+      {"Name" = "keycloak-${var.environment}"}
+    )
   )
 }
 
@@ -27,7 +29,9 @@ resource "aws_alb_target_group" "keycloak" {
   }
   tags = merge(
     local.common_tags,
-    map("Name", "keycloak-${var.environment}")
+    tomap(
+      {"Name" = "keycloak-${var.environment}"}
+    )
   )
   depends_on = [aws_alb.keycloak]
 }
@@ -53,7 +57,9 @@ resource "aws_security_group" "load_balancer" {
 
   tags = merge(
     local.common_tags,
-    map("Name", "keycloak-load-balancer-security-group-${var.environment}")
+    tomap(
+      {"Name" = "keycloak-load-balancer-security-group-${var.environment}"}
+    )
   )
 }
 

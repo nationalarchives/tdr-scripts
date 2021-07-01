@@ -23,8 +23,8 @@ resource "aws_rds_cluster" "keycloak_database" {
   enabled_cloudwatch_logs_exports = ["postgresql"]
   tags = merge(
     local.common_tags,
-    map(
-      "Name", "keycloak-db-cluster-${var.environment}"
+    tomap(
+      {"Name" = "keycloak-db-cluster-${var.environment}"}
     )
   )
 
@@ -55,8 +55,8 @@ resource "aws_db_subnet_group" "user_subnet_group" {
 
   tags = merge(
     local.common_tags,
-    map(
-      "Name", "user-db-subnet-group-${var.environment}"
+    tomap(
+      {"Name" = "user-db-subnet-group-${var.environment}"}
     )
   )
 }
@@ -82,6 +82,8 @@ resource "aws_security_group" "database" {
 
   tags = merge(
     local.common_tags,
-    map("Name", "keycloak-database-security-group-${var.environment}")
+    tomap(
+      {"Name" = "keycloak-database-security-group-${var.environment}"}
+    )
   )
 }
