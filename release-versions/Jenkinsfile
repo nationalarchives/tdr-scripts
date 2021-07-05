@@ -11,7 +11,7 @@ pipeline {
         script {
           withCredentials([string(credentialsId: 'github-jenkins-api-key', variable: 'GITHUB_API_TOKEN'), string(credentialsId: 'slack-release-channel', variable: 'SLACK_URL')]) {
             dir("release-versions") {
-              sh "python3 generate_release_file.py"
+              sh "python3 generate_release_file.py ${env.SLACK_URL}"
             }
           }
           publishHTML (target: [

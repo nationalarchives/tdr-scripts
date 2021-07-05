@@ -2,6 +2,7 @@ from quik import FileLoader
 from collections import ChainMap
 import requests
 import os
+import sys
 from datetime import datetime
 import json
 
@@ -9,9 +10,6 @@ releases = []
 
 headers = {'Content-Type': 'application/json',
            'Authorization': f'Bearer {os.environ["GITHUB_API_TOKEN"]}'}
-
-slack_url = os.getenv("SLACK_URL")
-
 
 def url(repo, suffix):
     return f"https://api.github.com/repos/nationalarchives/{repo}/{suffix}"
@@ -147,8 +145,8 @@ def send_slack_message():
             slack_message["blocks"].append({"type": "divider"})
 
         append_section(slack_message, f"<{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
-        if slack_url is not None:
-            requests.post(os.environ["SLACK_URL"], json=slack_message)
+        if len(sys.argv) > 1:
+            requests.post(sys.argv[1], json=slack_message)
         else:
             print(json.dumps(slack_message))
 
