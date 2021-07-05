@@ -1,0 +1,24 @@
+library("tdr-jenkinslib")
+def repo = "tdr-scripts"
+def tooOld = "False"
+
+pipeline {
+  agent {
+    label "master"
+  }
+  stages {
+    stage("Run git secrets") {
+      steps {
+        script {
+          build(
+              job: "TDR Bastion Check",
+              parameters: [
+                  string(name: "STAGE", value: "intg"),
+              ],
+              wait: false)
+        }
+      }
+    }
+  }
+}
+
