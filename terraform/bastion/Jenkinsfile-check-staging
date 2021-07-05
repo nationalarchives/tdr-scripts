@@ -1,13 +1,9 @@
-library("tdr-jenkinslib")
-def repo = "tdr-scripts"
-def tooOld = "False"
-
 pipeline {
   agent {
     label "master"
   }
   stages {
-    stage("Run git secrets") {
+    stage("Run the bastion check for staging") {
       steps {
         script {
           build(
