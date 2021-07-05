@@ -28,9 +28,9 @@ pipeline {
   post {
     failure {
       script {
-        tdr.postToDaTdrSlackChannel(colour: "danger",
-          message: "*Release versions script* :warning: The script to generate release versions has failed"
-        )
+//         tdr.postToDaTdrSlackChannel(colour: "danger",
+//           message: "*Release versions script* :warning: The script to generate release versions has failed"
+//         )
       }
     }
   }

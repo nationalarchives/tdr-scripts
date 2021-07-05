@@ -145,6 +145,8 @@ def send_slack_message():
             slack_message["blocks"].append({"type": "divider"})
 
         append_section(slack_message, f"<{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
+        for i in os.environ:
+            print(i)
         if "SLACK_URL" in os.environ:
             requests.post(os.environ["SLACK_URL"], json=slack_message)
         else:
