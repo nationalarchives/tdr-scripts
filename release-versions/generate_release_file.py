@@ -10,6 +10,8 @@ releases = []
 headers = {'Content-Type': 'application/json',
            'Authorization': f'Bearer {os.environ["GITHUB_API_TOKEN"]}'}
 
+slack_url = os.getenv("SLACK_URL")
+
 
 def url(repo, suffix):
     return f"https://api.github.com/repos/nationalarchives/{repo}/{suffix}"
@@ -145,8 +147,7 @@ def send_slack_message():
             slack_message["blocks"].append({"type": "divider"})
 
         append_section(slack_message, f"<{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
-        print("SLACK URL " + os.getenv("SLACK_URL"))
-        if os.getenv("SLACK_URL") is not None:
+        if slack_url is not None:
             requests.post(os.environ["SLACK_URL"], json=slack_message)
         else:
             print(json.dumps(slack_message))
