@@ -145,9 +145,8 @@ def send_slack_message():
             slack_message["blocks"].append({"type": "divider"})
 
         append_section(slack_message, f"<{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
-        for i in os.environ:
-            print(i)
-        if "SLACK_URL" in os.environ:
+        print("SLACK URL " + os.getenv("SLACK_URL"))
+        if os.getenv("SLACK_URL") is not None:
             requests.post(os.environ["SLACK_URL"], json=slack_message)
         else:
             print(json.dumps(slack_message))
