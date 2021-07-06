@@ -19,7 +19,10 @@ If you want to restore to a particular point in time instead of from the most re
 aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].[LatestRestorableTime, EarliestRestorableTime]" --output table
 ```
 
-Run terraform
+## Run terraform
+
+**Important Note**: restore-database uses v13 of Terraform. Ensure that Terraform v13 is installed before proceeding.
+
 ```
 export TF_VAR_tdr_account_number=xxxxxxxxxxx
 export TF_VAR_cluster_identifier=$(aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].DBClusterIdentifier" --output text)
