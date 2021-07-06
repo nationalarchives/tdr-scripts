@@ -1,0 +1,20 @@
+pipeline {
+  agent {
+    label "master"
+  }
+  stages {
+    stage("Run the bastion check for integration") {
+      steps {
+        script {
+          build(
+              job: "TDR Bastion Check",
+              parameters: [
+                  string(name: "STAGE", value: "intg"),
+              ],
+              wait: false)
+        }
+      }
+    }
+  }
+}
+
