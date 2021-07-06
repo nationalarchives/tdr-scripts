@@ -4,7 +4,7 @@ resource "aws_ecs_cluster" "keycloak_ecs" {
   tags = merge(
     local.common_tags,
     tomap(
-      {"Name" = "keycloak_${var.environment}"}
+      { "Name" = "keycloak_${var.environment}" }
     )
   )
 }
@@ -22,7 +22,7 @@ resource "aws_ecs_task_definition" "keycloak_task" {
   tags = merge(
     local.common_tags,
     tomap(
-      {"Name" = "keycloak-task-definition"}
+      { "Name" = "keycloak-task-definition" }
     )
   )
 }
@@ -98,7 +98,7 @@ resource "aws_security_group" "ecs_tasks" {
   tags = merge(
     local.common_tags,
     tomap(
-      {"Name" = "keycloak-ecs-task-security-group-${var.environment}"}
+      { "Name" = "keycloak-ecs-task-security-group-${var.environment}" }
     )
   )
 }

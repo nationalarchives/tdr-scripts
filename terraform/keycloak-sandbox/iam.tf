@@ -5,7 +5,7 @@ resource "aws_iam_role" "keycloak_ecs_execution" {
   tags = merge(
     local.common_tags,
     tomap(
-      {"Name" = "api-ecs-execution-iam-role-${var.environment}"}
+      { "Name" = "api-ecs-execution-iam-role-${var.environment}" }
     )
   )
 }
@@ -17,7 +17,7 @@ resource "aws_iam_role" "keycloak_ecs_task" {
   tags = merge(
     local.common_tags,
     tomap(
-      {"Name" = "api-ecs-task-iam-role-${var.environment}"}
+      { "Name" = "api-ecs-task-iam-role-${var.environment}" }
     )
   )
 }

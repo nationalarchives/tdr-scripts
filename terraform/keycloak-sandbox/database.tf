@@ -24,7 +24,7 @@ resource "aws_rds_cluster" "keycloak_database" {
   tags = merge(
     local.common_tags,
     tomap(
-      {"Name" = "keycloak-db-cluster-${var.environment}"}
+      { "Name" = "keycloak-db-cluster-${var.environment}" }
     )
   )
 
@@ -56,7 +56,7 @@ resource "aws_db_subnet_group" "user_subnet_group" {
   tags = merge(
     local.common_tags,
     tomap(
-      {"Name" = "user-db-subnet-group-${var.environment}"}
+      { "Name" = "user-db-subnet-group-${var.environment}" }
     )
   )
 }
@@ -83,7 +83,7 @@ resource "aws_security_group" "database" {
   tags = merge(
     local.common_tags,
     tomap(
-      {"Name" = "keycloak-database-security-group-${var.environment}"}
+      { "Name" = "keycloak-database-security-group-${var.environment}" }
     )
   )
 }
