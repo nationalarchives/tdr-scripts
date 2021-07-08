@@ -9,11 +9,13 @@ locals {
   # We don't normally need to connect this Keycloak server to any other
   # services, so it's fine to use a placeholder URL
   frontend_url = "https://example.com"
-  common_tags = map(
-    "Environment", var.environment,
-    "Owner", "TDR",
-    "Terraform", true,
-    "TerraformSource", "https://github.com/nationalarchives/tdr-scripts/tree/master/terraform/keycloak-sandbox",
-    "CostCentre", data.aws_ssm_parameter.cost_centre.value
+  common_tags = tomap(
+    {
+      "Environment"     = var.environment,
+      "Owner"           = "TDR",
+      "Terraform"       = true,
+      "TerraformSource" = "https://github.com/nationalarchives/tdr-scripts/tree/master/terraform/keycloak-sandbox",
+      "CostCentre"      = data.aws_ssm_parameter.cost_centre.value
+    }
   )
 }

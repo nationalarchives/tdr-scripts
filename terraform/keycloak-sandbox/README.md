@@ -1,5 +1,7 @@
 # Run a Keycloak instance in the sandbox
 
+**Important Note**: keycloak-sandbox uses v13 of Terraform. Ensure that Terraform v13 is installed before proceeding.
+
 This Terraform script lets you create a Keycloak instance in the Sandbox
 account. This instance does not have all of the security controls that the
 Keycloak instances in the other accounts have. For example, the ECS app runs in

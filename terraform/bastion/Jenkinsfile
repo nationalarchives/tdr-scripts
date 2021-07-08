@@ -65,7 +65,7 @@ pipeline {
     stage('Run Terraform build') {
       agent {
         ecs {
-          inheritFrom 'terraform'
+          inheritFrom 'terraform-v13'
           taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRTerraformAssumeRole${params.STAGE.capitalize()}"
         }
       }
@@ -82,7 +82,7 @@ pipeline {
             script {
               dir("terraform/bastion") {
                 echo 'Initializing Terraform...'
-                sh "git clone https://github.com/nationalarchives/tdr-terraform-modules.git"
+                sh "git clone --branch terraform-v13 https://github.com/nationalarchives/tdr-terraform-modules.git"
                 sh 'terraform init'
                 //If Terraform workspace exists continue
                 sh "terraform workspace new ${params.STAGE} || true"
