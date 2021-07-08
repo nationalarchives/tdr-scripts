@@ -1,0 +1,25 @@
+<html>
+<link href="https://jenkins.tdr-management.nationalarchives.gov.uk/userContent/bootstrap.min.css" rel="stylesheet">
+  <div class="container">
+      <table class="table table-striped">
+    <thead>
+    <tr>
+      <th>Name</th>
+      <th>Integration Version</th>
+      <th>Staging Version</th>
+      <th>Production Version</th>
+    </tr>
+  </thead>
+  <tbody>
+  #for @release in @releases:
+    <tr>
+        <td>@release.repository</td>
+        <td class="@release.integration.data_class">@release.integration.version</td>
+        <td class="@release.staging.data_class">@release.staging.version @release.staging.date_diff</td>
+        <td class="@release.production.data_class">@release.production.version @release.production.date_diff</td>
+    </tr>
+  #end
+  </tbody>
+  </table>
+  </div>
+</html>
