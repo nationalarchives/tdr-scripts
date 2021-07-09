@@ -16,6 +16,8 @@ def url(repo, suffix):
 
 
 def get_versions(repository_name):
+    print(f"Fetching release branches for {repository_name}")
+
     branches = requests.get(url(repository_name, "branches"), headers=headers).json()
     # If there are no branches found for a repository, you get a message field so we can just ignore those.
     filtered_release_branches = dict(ChainMap(*[{branch["name"]: branch} for branch in branches if
