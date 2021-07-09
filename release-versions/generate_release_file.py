@@ -27,50 +27,61 @@ def get_versions(repository_name):
     if len(filtered_release_branches) > 0:
         tags = requests.get(url(repository_name, "tags"), headers=headers).json()
 
-        intg_sha = filtered_release_branches["release-intg"]["commit"]["sha"]
-        staging_sha = filtered_release_branches["release-staging"]["commit"]["sha"]
-        prod_sha = filtered_release_branches["release-prod"]["commit"]["sha"]
+        intg_branch = filtered_release_branches.get("release-intg")
+        staging_branch = filtered_release_branches.get("release-staging")
+        prod_branch = filtered_release_branches.get("release-prod")
 
-        intg_version = get_version_for_stage(tags, intg_sha)
-        staging_version = get_version_for_stage(tags, staging_sha)
-        prod_version = get_version_for_stage(tags, prod_sha)
+        intg_sha = intg_branch["commit"]["sha"] if intg_branch else None
+        staging_sha = staging_branch["commit"]["sha"] if staging_branch else None
+        prod_sha = prod_branch["commit"]["sha"] if prod_branch else None
 
-        intg_date = get_date_for_stage(repository_name, intg_sha)
-        staging_date = get_date_for_stage(repository_name, staging_sha)
-        prod_date = get_date_for_stage(repository_name, prod_sha)
+        intg_version = get_version_for_stage(tags, intg_sha) if intg_branch else None
+        staging_version = get_version_for_stage(tags, staging_sha) if staging_branch else None
+        prod_version = get_version_for_stage(tags, prod_sha) if prod_branch else None
 
-        max_version = max([intg_version, staging_version, prod_version])
+        intg_date = get_date_for_stage(repository_name, intg_sha) if intg_branch else None
+        staging_date = get_date_for_stage(repository_name, staging_sha) if staging_branch else None
+        prod_date = get_date_for_stage(repository_name, prod_sha) if prod_branch else None
+
+        defined_branches = filter(None, [intg_version, staging_version, prod_version])
+        max_version = max(defined_branches)
 
         staging_out_of_date = staging_version != max_version
         prod_out_of_date = prod_version != max_version
 
-        staging_diff = (intg_date - staging_date).days
-        prod_diff = (staging_date - prod_date).days
+        # TODO: Handle intg but no staging, etc.
+        if (staging_branch):
+            staging_diff = (intg_date - staging_date).days
+            staging_diff_text = f"({staging_diff} day{'' if staging_diff == 1 else 's'} behind integration)" if staging_out_of_date else ""
+        else:
+            staging_diff_text = ""
 
-        staging_diff_text = f"({staging_diff} day{'' if staging_diff == 1 else 's'} behind integration)" if staging_out_of_date else ""
-        prod_diff_text = f"({prod_diff} day{'' if prod_diff == 1 else 's'} behind staging)" if prod_out_of_date else ""
+        if (prod_branch):
+            prod_diff = (staging_date - prod_date).days
+            prod_diff_text = f"({prod_diff} day{'' if prod_diff == 1 else 's'} behind staging)" if prod_out_of_date else ""
+        else:
+            prod_diff_text = ""
 
         return {"repository": repository_name,
-                "integration": {"version": intg_version,
+                "integration": {"version": intg_version if intg_version else "Unknown",
                                 "data_class":
                                     "table-success" if intg_version == max_version else "table-danger fw-bold",
                                 "out_of_date": intg_version != max_version,
                                 "date_diff": ""
                                 },
-                "staging": {"version": staging_version,
+                "staging": {"version": staging_version if staging_version else "Unknown",
                             "data_class":
                                 "table-success" if staging_version == max_version else "table-danger fw-bold",
                             "out_of_date": staging_out_of_date,
                             "date_diff": staging_diff_text
                             },
-                "production": {"version": prod_version,
+                "production": {"version": prod_version if prod_version else "Unknown",
                                "data_class":
                                    "table-success" if prod_version == max_version else "table-danger fw-bold",
                                "out_of_date": prod_out_of_date,
                                "date_diff": prod_diff_text
                                },
                 }
-
 
 def get_date_for_stage(repo_name, release_sha):
     commit_response = requests.get(f"{url(repo_name, 'commits')}/{release_sha}", headers=headers).json()
