@@ -27,61 +27,37 @@ def get_versions(repository_name):
     if len(filtered_release_branches) > 0:
         tags = requests.get(url(repository_name, "tags"), headers=headers).json()
 
-        intg_branch = filtered_release_branches.get("release-intg")
-        staging_branch = filtered_release_branches.get("release-staging")
-        prod_branch = filtered_release_branches.get("release-prod")
+        intg_branch = release_branch(repository_name, "intg", filtered_release_branches, tags)
+        staging_branch = release_branch(repository_name, "staging", filtered_release_branches, tags)
+        prod_branch = release_branch(repository_name, "prod", filtered_release_branches, tags)
 
-        intg_sha = intg_branch["commit"]["sha"] if intg_branch else None
-        staging_sha = staging_branch["commit"]["sha"] if staging_branch else None
-        prod_sha = prod_branch["commit"]["sha"] if prod_branch else None
+        defined_versions = [branch["version"] for branch in [intg_branch, staging_branch, prod_branch] if branch]
+        max_version = max(defined_versions)
 
-        intg_version = get_version_for_stage(tags, intg_sha) if intg_branch else None
-        staging_version = get_version_for_stage(tags, staging_sha) if staging_branch else None
-        prod_version = get_version_for_stage(tags, prod_sha) if prod_branch else None
+        return {
+            "repository": repository_name,
+            "integration": integration_view_model(intg_branch, max_version),
+            "staging": higher_environment_branch_view_model(staging_branch, intg_branch, max_version),
+            "production": higher_environment_branch_view_model(prod_branch, staging_branch, max_version),
+        }
 
-        intg_date = get_date_for_stage(repository_name, intg_sha) if intg_branch else None
-        staging_date = get_date_for_stage(repository_name, staging_sha) if staging_branch else None
-        prod_date = get_date_for_stage(repository_name, prod_sha) if prod_branch else None
 
-        defined_branches = filter(None, [intg_version, staging_version, prod_version])
-        max_version = max(defined_branches)
+def release_branch(repo_name, environment, filtered_release_branches, repo_tags):
+    branch = filtered_release_branches.get(f"release-{environment}")
 
-        staging_out_of_date = staging_version != max_version
-        prod_out_of_date = prod_version != max_version
+    if branch:
+        sha = branch["commit"]["sha"] if branch else None
+        version = get_version_for_stage(repo_tags, sha) if branch else None
+        date = get_date_for_stage(repo_name, sha) if branch else None
 
-        # TODO: Handle intg but no staging, etc.
-        if (staging_branch):
-            staging_diff = (intg_date - staging_date).days
-            staging_diff_text = f"({staging_diff} day{'' if staging_diff == 1 else 's'} behind integration)" if staging_out_of_date else ""
-        else:
-            staging_diff_text = ""
+        return {
+            "environment": environment,
+            "version": version,
+            "date": date
+        }
+    else:
+        return None
 
-        if (prod_branch):
-            prod_diff = (staging_date - prod_date).days
-            prod_diff_text = f"({prod_diff} day{'' if prod_diff == 1 else 's'} behind staging)" if prod_out_of_date else ""
-        else:
-            prod_diff_text = ""
-
-        return {"repository": repository_name,
-                "integration": {"version": intg_version if intg_version else "Unknown",
-                                "data_class":
-                                    "table-success" if intg_version == max_version else "table-danger fw-bold",
-                                "out_of_date": intg_version != max_version,
-                                "date_diff": ""
-                                },
-                "staging": {"version": staging_version if staging_version else "Unknown",
-                            "data_class":
-                                "table-success" if staging_version == max_version else "table-danger fw-bold",
-                            "out_of_date": staging_out_of_date,
-                            "date_diff": staging_diff_text
-                            },
-                "production": {"version": prod_version if prod_version else "Unknown",
-                               "data_class":
-                                   "table-success" if prod_version == max_version else "table-danger fw-bold",
-                               "out_of_date": prod_out_of_date,
-                               "date_diff": prod_diff_text
-                               },
-                }
 
 def get_date_for_stage(repo_name, release_sha):
     commit_response = requests.get(f"{url(repo_name, 'commits')}/{release_sha}", headers=headers).json()
@@ -95,6 +71,43 @@ def get_version_for_stage(tags, release_sha):
         return filtered_release_tags[0]["name"]
     else:
         return ""
+
+
+def integration_view_model(branch, max_version):
+    if branch:
+        is_out_of_date = branch["version"] != max_version
+        return branch_view_model(is_out_of_date, branch["version"], "")
+    else:
+        return empty_branch_view_model()
+
+
+def higher_environment_branch_view_model(branch, lower_environment_branch, max_version):
+    if branch:
+        is_out_of_date = branch["version"] != max_version if branch else True
+
+        if lower_environment_branch:
+            difference_days = (lower_environment_branch["date"] - branch["date"]).days
+            lower_branch_name = branch["environment"]
+            out_of_date_text = f"({difference_days} day{'' if difference_days == 1 else 's'} behind {lower_branch_name})" if is_out_of_date else ""
+        else:
+            out_of_date_text = ""
+
+        return branch_view_model(is_out_of_date, branch["version"], out_of_date_text)
+    else:
+        return empty_branch_view_model()
+
+
+def empty_branch_view_model():
+    return branch_view_model(True, "Unknown", "")
+
+
+def branch_view_model(is_out_of_date, version, out_of_date_text):
+    return {
+        "version": version,
+        "data_class": "table-danger fw-bold" if is_out_of_date else "table-success",
+        "out_of_date": is_out_of_date,
+        "date_diff": out_of_date_text
+    }
 
 
 def append_section(message, text):
