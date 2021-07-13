@@ -109,6 +109,13 @@ pipeline {
       echo 'Deleting Jenkins workspace...'
       deleteDir()
     }
+    failure {
+      script {
+        tdr.postToDaTdrSlackChannel(colour: "danger",
+          message: "*Bastion script* :warning: The script to ${params.COMMAND} the bastion has failed"
+        )
+      }
+    }
   }
 }
 
