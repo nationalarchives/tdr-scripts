@@ -87,7 +87,7 @@ def higher_environment_branch_view_model(branch, lower_environment_branch, max_v
 
         if lower_environment_branch:
             difference_days = (lower_environment_branch["date"] - branch["date"]).days
-            lower_branch_name = branch["environment"]
+            lower_branch_name = lower_environment_branch["environment"]
             out_of_date_text = f"({difference_days} day{'' if difference_days == 1 else 's'} behind {lower_branch_name})" if is_out_of_date else ""
         else:
             out_of_date_text = ""
