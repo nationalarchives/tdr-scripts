@@ -9,15 +9,17 @@ Postgres client is installed when the instance is created and a .pgpass file is 
 The `terraform/bastion` directory contains a Jenkinsfile for creating the bastion instance through Jenkins.
 
 To connect to the host
-* Log into the required TDR AWS account (intg, staging, prod) and go to [EC2 instances][ec2-instances].
+* Log into the required TDR AWS account (intg, staging, prod)
+* Click on EC2 (search for it, if it isn't in your 'Recently visited services' list)
+* Click on [Instances (running)][ec2-instances-running].
 * Click the checkbox next to the instance called bastion-ec2-instance-{stage_name}
 * Click Connect
-* Choose the Session Manager radio button and click Connect
+* Choose the Session Manager tab and click Connect
 
 To connect to the database
 * Connect to the host.
-* Go to the /home/ssm-user directory
-* Run the `connect.sh` script
+* Go to the /home/ssm-user directory (using `cd /home/ssm-user`)
+* Run the `./connect.sh` script
 
 To setup an ssh tunnel
 * Create an [ssh key pair][ssh-key-pair]
@@ -59,7 +61,7 @@ host i-* mi-*
 
 `psql  "host=cluster_endpoint port=65432 sslmode=verify-full sslrootcert=/location/of/rds-combined-ca-bundle.pem dbname=consignmentapi user=bastion_user password=generated_password"`
 
-[ec2-instances]: https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=eu-west-2#Instances
+[ec2-instances-running]: https://eu-west-2.console.aws.amazon.com/ec2/v2/home?region=eu-west-2#Instances:instanceState=running
 [ssh-key-pair]: https://docs.github.com/en/free-pro-team@latest/github/authenticating-to-github/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent
 [bastion-jenkins-job]: https://jenkins.tdr-management.nationalarchives.gov.uk/job/TDR%20Bastion%20Deploy/
 
