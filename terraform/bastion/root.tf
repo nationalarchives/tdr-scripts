@@ -26,13 +26,25 @@ resource "aws_iam_policy" "bastion_assume_role_policy" {
   policy = templatefile("${path.module}/templates/bastion_assume_role.json.tpl", { role_arn = aws_iam_role.bastion_db_connect_role.arn })
 }
 
+resource "aws_iam_policy" "bastion_connect_to_efs_policy" {
+  name   = "TDRBastionEFSConnectPolicy${title(local.environment)}"
+  policy = templatefile("${path.module}/templates/bastion_connect_to_efs.json.tpl", { file_system_arn = data.aws_efs_file_system.backend_checks_file_system.arn })
+}
+
 data "aws_db_instance" "instance" {
   db_instance_identifier = tolist(data.aws_rds_cluster.consignment_api.cluster_members)[0]
 }
 
-resource "aws_iam_role_policy_attachment" "bastion_assumne_db_role_attach" {
+resource "aws_iam_role_policy_attachment" "bastion_assume_db_role_attach" {
+  count      = var.connect_to_database == "true" ? 1 : 0
   policy_arn = aws_iam_policy.bastion_assume_role_policy.arn
-  role       = module.bastion_ec2_instance.role_id
+  role       = data.aws_iam_role.bastion_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "bastion_access_efs_attach" {
+  count      = var.connect_to_efs == "true" ? 1 : 0
+  policy_arn = aws_iam_policy.bastion_connect_to_efs_policy.arn
+  role       = data.aws_iam_role.bastion_role.name
 }
 
 resource "aws_iam_role" "tdr_jenkins_run_ssm_document_role" {
@@ -61,18 +73,25 @@ module "bastion_ami" {
   source_ami  = data.aws_ami.amazon_linux_ami.id
 }
 
-
 module "bastion_ec2_instance" {
-  source              = "./tdr-terraform-modules/ec2"
-  common_tags         = local.common_tags
-  environment         = local.environment
-  name                = "bastion"
-  user_data           = "user_data_postgres"
-  user_data_variables = { db_host = split(":", data.aws_db_instance.instance.endpoint)[0], account_number = data.aws_caller_identity.current.account_id, environment = title(local.environment) }
-  ami_id              = module.bastion_ami.encrypted_ami_id
-  security_group_id   = data.aws_security_group.db_security_group.id
-  subnet_id           = data.aws_subnet.private_subnet.id
-  public_key          = var.public_key
+  source      = "./tdr-terraform-modules/ec2"
+  common_tags = local.common_tags
+  environment = local.environment
+  name        = "bastion"
+  user_data   = "user_data_bastion"
+  user_data_variables = {
+    db_host             = split(":", data.aws_db_instance.instance.endpoint)[0],
+    account_number      = data.aws_caller_identity.current.account_id,
+    environment         = title(local.environment),
+    file_system_id      = data.aws_efs_file_system.backend_checks_file_system.id,
+    connect_to_efs      = var.connect_to_efs,
+    connect_to_database = var.connect_to_database
+  }
+  ami_id            = module.bastion_ami.encrypted_ami_id
+  security_group_id = module.bastion_ec2_security_group.security_group_id
+  subnet_id         = data.aws_subnet.private_subnet.id
+  public_key        = var.public_key
+  role_name         = data.aws_iam_role.bastion_role.name
 }
 
 module "bastion_delete_user_document" {
@@ -80,4 +99,33 @@ module "bastion_delete_user_document" {
   content_template    = "bastion_delete_user"
   document_name       = "deleteuser"
   template_parameters = { db_host = data.aws_ssm_parameter.database_url.value, db_username = data.aws_ssm_parameter.database_username.value, db_password = data.aws_ssm_parameter.database_password.value }
+}
+
+module "bastion_ec2_security_group" {
+  source            = "./tdr-terraform-modules/security_group"
+  description       = "Security group which will be used by the bastion EC2 instance"
+  name              = "tdr-database-bastion-security-group-${local.environment}"
+  vpc_id            = data.aws_vpc.vpc.id
+  common_tags       = local.common_tags
+  egress_cidr_rules = [{ port = 0, cidr_blocks = ["0.0.0.0/0"], description = "Allow outbound access on all ports", protocol = "-1" }]
+}
+
+resource "aws_security_group_rule" "allow_access_to_database" {
+  count                    = var.connect_to_database == "true" ? 1 : 0
+  from_port                = 5432
+  protocol                 = "tcp"
+  security_group_id        = data.aws_security_group.db_security_group.id
+  source_security_group_id = module.bastion_ec2_security_group.security_group_id
+  to_port                  = 5432
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "allow_access_to_efs" {
+  count                    = var.connect_to_efs == "true" ? 1 : 0
+  from_port                = 2049
+  protocol                 = "tcp"
+  security_group_id        = data.aws_security_group.efs_security_group.id
+  source_security_group_id = module.bastion_ec2_security_group.security_group_id
+  to_port                  = 2049
+  type                     = "ingress"
 }

@@ -28,12 +28,6 @@ data "aws_ssm_parameter" "mgmt_account_number" {
   name = "/mgmt/management_account"
 }
 
-data "aws_security_group" "db_security_group" {
-  tags = {
-    "Name" = "${var.service}-database-bastion-security-group-${local.environment}"
-  }
-}
-
 data "aws_subnet" "private_subnet" {
   tags = {
     "Name" = "tdr-private-subnet-0-${local.environment}"
@@ -41,3 +35,27 @@ data "aws_subnet" "private_subnet" {
 }
 
 data "aws_caller_identity" "current" {}
+
+data "aws_efs_file_system" "backend_checks_file_system" {
+  tags = {
+    Name = "tdr-backend-checks-efs-${local.environment}"
+  }
+}
+
+data "aws_iam_role" "bastion_role" {
+  name = "BastionEC2Role${title(local.environment)}"
+}
+
+data "aws_vpc" "vpc" {
+  tags = {
+    Name = "tdr-vpc-${local.environment}"
+  }
+}
+
+data "aws_security_group" "db_security_group" {
+  name = "consignmentapi-database-security-group-${local.environment}"
+}
+
+data "aws_security_group" "efs_security_group" {
+  name = "backend-checks-efs-mount-target-security-group"
+}

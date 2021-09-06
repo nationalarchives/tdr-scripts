@@ -18,3 +18,11 @@ variable "public_key" {
 variable "service" {
   default = "consignmentapi"
 }
+
+variable "connect_to_database" {
+  default = false
+}
+
+variable "connect_to_efs" {
+  default = false
+}
