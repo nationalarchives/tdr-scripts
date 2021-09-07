@@ -22,11 +22,13 @@ resource "aws_iam_role_policy_attachment" "db_connect_policy_attach" {
 }
 
 resource "aws_iam_policy" "bastion_assume_role_policy" {
+  count  = local.database_count
   name   = "TDRBastionAssumeDbRolePolicy${title(local.environment)}"
   policy = templatefile("${path.module}/templates/bastion_assume_role.json.tpl", { role_arn = aws_iam_role.bastion_db_connect_role.arn })
 }
 
 resource "aws_iam_policy" "bastion_connect_to_efs_policy" {
+  count  = local.backend_checks_efs_count
   name   = "TDRBastionEFSConnectPolicy${title(local.environment)}"
   policy = templatefile("${path.module}/templates/bastion_connect_to_efs.json.tpl", { file_system_arn = data.aws_efs_file_system.backend_checks_file_system.arn })
 }
@@ -37,13 +39,13 @@ data "aws_db_instance" "instance" {
 
 resource "aws_iam_role_policy_attachment" "bastion_assume_db_role_attach" {
   count      = local.database_count
-  policy_arn = aws_iam_policy.bastion_assume_role_policy.arn
+  policy_arn = aws_iam_policy.bastion_assume_role_policy[count.index].arn
   role       = data.aws_iam_role.bastion_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "bastion_access_efs_attach" {
-  count      = local.efs_count
-  policy_arn = aws_iam_policy.bastion_connect_to_efs_policy.arn
+  count      = local.backend_checks_efs_count
+  policy_arn = aws_iam_policy.bastion_connect_to_efs_policy[count.index].arn
   role       = data.aws_iam_role.bastion_role.name
 }
 
@@ -83,12 +85,14 @@ module "bastion_ec2_instance" {
   name        = "bastion"
   user_data   = "user_data_bastion"
   user_data_variables = {
-    db_host             = split(":", data.aws_db_instance.instance.endpoint)[0],
-    account_number      = data.aws_caller_identity.current.account_id,
-    environment         = title(local.environment),
-    file_system_id      = data.aws_efs_file_system.backend_checks_file_system.id,
-    connect_to_efs      = var.connect_to_efs,
-    connect_to_database = var.connect_to_database
+    db_host                       = split(":", data.aws_db_instance.instance.endpoint)[0],
+    account_number                = data.aws_caller_identity.current.account_id,
+    environment                   = title(local.environment),
+    backend_checks_file_system_id = data.aws_efs_file_system.backend_checks_file_system.id,
+    export_file_system_id         = data.aws_efs_file_system.export_file_system.id,
+    connect_to_backend_checks_efs = var.connect_to_backend_checks_efs,
+    connect_to_export_efs         = var.connect_to_export_efs,
+    connect_to_database           = var.connect_to_database
   }
   ami_id            = module.bastion_ami.encrypted_ami_id
   security_group_id = module.bastion_ec2_security_group.security_group_id
@@ -124,11 +128,21 @@ resource "aws_security_group_rule" "allow_access_to_database" {
   type                     = "ingress"
 }
 
-resource "aws_security_group_rule" "allow_access_to_efs" {
-  count                    = local.efs_count
+resource "aws_security_group_rule" "allow_access_to_backend_checks_efs" {
+  count                    = local.backend_checks_efs_count
   from_port                = 2049
   protocol                 = "tcp"
-  security_group_id        = data.aws_security_group.efs_security_group.id
+  security_group_id        = data.aws_security_group.efs_backend_checks_security_group.id
+  source_security_group_id = module.bastion_ec2_security_group.security_group_id
+  to_port                  = 2049
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "allow_access_to_export_efs" {
+  count                    = local.backend_checks_efs_count
+  from_port                = 2049
+  protocol                 = "tcp"
+  security_group_id        = data.aws_security_group.efs_export_security_group.id
   source_security_group_id = module.bastion_ec2_security_group.security_group_id
   to_port                  = 2049
   type                     = "ingress"

@@ -42,6 +42,12 @@ data "aws_efs_file_system" "backend_checks_file_system" {
   }
 }
 
+data "aws_efs_file_system" "export_file_system" {
+  tags = {
+    Name = "tdr-export-efs-${local.environment}"
+  }
+}
+
 data "aws_iam_role" "bastion_role" {
   name = "BastionEC2Role${title(local.environment)}"
 }
@@ -56,6 +62,10 @@ data "aws_security_group" "db_security_group" {
   name = "consignmentapi-database-security-group-${local.environment}"
 }
 
-data "aws_security_group" "efs_security_group" {
+data "aws_security_group" "efs_backend_checks_security_group" {
   name = "backend-checks-efs-mount-target-security-group"
+}
+
+data "aws_security_group" "efs_export_security_group" {
+  name = "export-efs-mount-target-security-group"
 }
