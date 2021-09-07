@@ -45,7 +45,7 @@ pipeline {
     stage('Create user if creating bastion') {
       when {
         beforeAgent true
-        expression { params.COMMAND == "apply" }
+        expression { params.COMMAND == "apply" && params.CONNECT_TO_DATABASE == true }
       }
       agent {
         ecs {
