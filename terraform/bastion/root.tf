@@ -36,30 +36,33 @@ data "aws_db_instance" "instance" {
 }
 
 resource "aws_iam_role_policy_attachment" "bastion_assume_db_role_attach" {
-  count      = var.connect_to_database == "true" ? 1 : 0
+  count      = local.database_count
   policy_arn = aws_iam_policy.bastion_assume_role_policy.arn
   role       = data.aws_iam_role.bastion_role.name
 }
 
 resource "aws_iam_role_policy_attachment" "bastion_access_efs_attach" {
-  count      = var.connect_to_efs == "true" ? 1 : 0
+  count      = local.efs_count
   policy_arn = aws_iam_policy.bastion_connect_to_efs_policy.arn
   role       = data.aws_iam_role.bastion_role.name
 }
 
 resource "aws_iam_role" "tdr_jenkins_run_ssm_document_role" {
+  count              = local.database_count
   name               = "TDRJenkinsRunDocumentRole${title(local.environment)}"
   assume_role_policy = templatefile("${path.module}/templates/assume_role_policy.json.tpl", { account_id = data.aws_ssm_parameter.mgmt_account_number.value })
 }
 
 resource "aws_iam_policy" "tdr_jenkins_run_ssm_document_policy" {
+  count  = local.database_count
   name   = "TDRJenkinsRunDocumentPolicy${title(local.environment)}"
   policy = templatefile("${path.module}/templates/run_ssm_delete_user.json.tpl", { account_id = data.aws_caller_identity.current.account_id })
 }
 
 resource "aws_iam_role_policy_attachment" "tdr_jenkins_run_ssm_attach" {
-  policy_arn = aws_iam_policy.tdr_jenkins_run_ssm_document_policy.arn
-  role       = aws_iam_role.tdr_jenkins_run_ssm_document_role.id
+  count      = local.database_count
+  policy_arn = aws_iam_policy.tdr_jenkins_run_ssm_document_policy[count.index].arn
+  role       = aws_iam_role.tdr_jenkins_run_ssm_document_role[count.index].id
 }
 
 module "bastion_ami" {
@@ -95,6 +98,7 @@ module "bastion_ec2_instance" {
 }
 
 module "bastion_delete_user_document" {
+  count               = local.database_count
   source              = "./tdr-terraform-modules/ssm_document"
   content_template    = "bastion_delete_user"
   document_name       = "deleteuser"
@@ -111,7 +115,7 @@ module "bastion_ec2_security_group" {
 }
 
 resource "aws_security_group_rule" "allow_access_to_database" {
-  count                    = var.connect_to_database == "true" ? 1 : 0
+  count                    = local.database_count
   from_port                = 5432
   protocol                 = "tcp"
   security_group_id        = data.aws_security_group.db_security_group.id
@@ -121,7 +125,7 @@ resource "aws_security_group_rule" "allow_access_to_database" {
 }
 
 resource "aws_security_group_rule" "allow_access_to_efs" {
-  count                    = var.connect_to_efs == "true" ? 1 : 0
+  count                    = local.efs_count
   from_port                = 2049
   protocol                 = "tcp"
   security_group_id        = data.aws_security_group.efs_security_group.id

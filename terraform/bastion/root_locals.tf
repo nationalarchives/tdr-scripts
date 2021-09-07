@@ -10,4 +10,6 @@ locals {
       "CostCentre"      = data.aws_ssm_parameter.cost_centre.value
     }
   )
+  efs_count      = var.connect_to_efs == "true" ? 1 : 0
+  database_count = var.connect_to_database == "true" ? 1 : 0
 }
