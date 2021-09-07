@@ -50,13 +50,13 @@ resource "aws_iam_role_policy_attachment" "bastion_assume_db_role_attach" {
   role       = data.aws_iam_role.bastion_role.name
 }
 
-resource "aws_iam_role_policy_attachment" "bastion_access_efs_attach" {
+resource "aws_iam_role_policy_attachment" "bastion_access_backend_efs_attach" {
   count      = local.backend_checks_efs_count
   policy_arn = aws_iam_policy.bastion_connect_to_backend_efs_policy[count.index].arn
   role       = data.aws_iam_role.bastion_role.name
 }
 
-resource "aws_iam_role_policy_attachment" "bastion_access_efs_attach" {
+resource "aws_iam_role_policy_attachment" "bastion_access_export_efs_attach" {
   count      = local.export_efs_count
   policy_arn = aws_iam_policy.bastion_connect_to_export_efs_policy[count.index].arn
   role       = data.aws_iam_role.bastion_role.name
