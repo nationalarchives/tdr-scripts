@@ -27,11 +27,18 @@ resource "aws_iam_policy" "bastion_assume_role_policy" {
   policy = templatefile("${path.module}/templates/bastion_assume_role.json.tpl", { role_arn = aws_iam_role.bastion_db_connect_role.arn })
 }
 
-resource "aws_iam_policy" "bastion_connect_to_efs_policy" {
+resource "aws_iam_policy" "bastion_connect_to_backend_efs_policy" {
   count  = local.backend_checks_efs_count
-  name   = "TDRBastionEFSConnectPolicy${title(local.environment)}"
+  name   = "TDRBastionBackendEFSConnectPolicy${title(local.environment)}"
   policy = templatefile("${path.module}/templates/bastion_connect_to_efs.json.tpl", { file_system_arn = data.aws_efs_file_system.backend_checks_file_system.arn })
 }
+
+resource "aws_iam_policy" "bastion_connect_to_export_efs_policy" {
+  count  = local.export_efs_count
+  name   = "TDRBastionExportEFSConnectPolicy${title(local.environment)}"
+  policy = templatefile("${path.module}/templates/bastion_connect_to_efs.json.tpl", { file_system_arn = data.aws_efs_file_system.export_file_system.arn })
+}
+
 
 data "aws_db_instance" "instance" {
   db_instance_identifier = tolist(data.aws_rds_cluster.consignment_api.cluster_members)[0]
@@ -45,7 +52,13 @@ resource "aws_iam_role_policy_attachment" "bastion_assume_db_role_attach" {
 
 resource "aws_iam_role_policy_attachment" "bastion_access_efs_attach" {
   count      = local.backend_checks_efs_count
-  policy_arn = aws_iam_policy.bastion_connect_to_efs_policy[count.index].arn
+  policy_arn = aws_iam_policy.bastion_connect_to_backend_efs_policy[count.index].arn
+  role       = data.aws_iam_role.bastion_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "bastion_access_efs_attach" {
+  count      = local.export_efs_count
+  policy_arn = aws_iam_policy.bastion_connect_to_export_efs_policy[count.index].arn
   role       = data.aws_iam_role.bastion_role.name
 }
 
@@ -139,7 +152,7 @@ resource "aws_security_group_rule" "allow_access_to_backend_checks_efs" {
 }
 
 resource "aws_security_group_rule" "allow_access_to_export_efs" {
-  count                    = local.backend_checks_efs_count
+  count                    = local.export_efs_count
   from_port                = 2049
   protocol                 = "tcp"
   security_group_id        = data.aws_security_group.efs_export_security_group.id
