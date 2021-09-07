@@ -35,10 +35,10 @@ pipeline {
         stage('Run delete user script') {
           steps {
             script {
+              def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
               //Role doesn't exist if database user was never created so we can skip deleting the user.
-              def status = sh(script: "aws sts assume-role --role-arn arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsRunDocumentRole${params.STAGE.capitalize()} --role-session-name check", returnStatus: true)
+              def status = sh(script: "aws sts assume-role --role-arn arn:aws:iam::${accountNumber}:role/TDRJenkinsRunDocumentRole${params.STAGE.capitalize()} --role-session-name check", returnStatus: true)
               if(status == 0) {
-                def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
                 sh "python3 /run_ssm_command.py ${accountNumber} ${params.STAGE} bastion-ec2-instance-${params.STAGE} deleteuser"
               }
             }
