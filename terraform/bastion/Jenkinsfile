@@ -9,6 +9,9 @@ pipeline {
     choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are creating the instance in")
     choice(name: "COMMAND", choices: ["apply", "destroy"], description: "Apply will create the instance")
     text(name: "PUBLIC_KEY", description: "Public key. This is not needed if you're not going to use ssh tunnelling")
+    booleanParam(name: 'CONNECT_TO_BACKEND_CHECKS_EFS', defaultValue: false, description: 'Allow the bastion to connect to the backend checks EFS volume')
+    booleanParam(name: 'CONNECT_TO_EXPORT_EFS', defaultValue: false, description: 'Allow the bastion to connect to the export EFS volume')
+    booleanParam(name: 'CONNECT_TO_DATABASE', defaultValue: false, description: 'Allow the bastion to connect to the database')
   }
   stages {
     stage("Run git secrets") {
@@ -34,16 +37,22 @@ pipeline {
           steps {
             script {
               def accountNumber = tdr.getAccountNumberFromStage(params.STAGE)
-              sh "python3 /run_ssm_command.py ${accountNumber} ${params.STAGE} bastion-ec2-instance-${params.STAGE} deleteuser"
+              //Role doesn't exist if database user was never created so we can skip deleting the user.
+              sh "set +e"
+              def status = sh(script: "aws sts assume-role --role-arn arn:aws:iam::${accountNumber}:role/TDRJenkinsRunDocumentRole${params.STAGE.capitalize()} --role-session-name check", returnStatus: true)
+              sh "set -e"
+              if(status == 0) {
+                sh "python3 /run_ssm_command.py ${accountNumber} ${params.STAGE} bastion-ec2-instance-${params.STAGE} deleteuser"
+              }
             }
           }
         }
       }
     }
-    stage('Create user if creating bastion') {
+    stage('Create user if connecting to database') {
       when {
         beforeAgent true
-        expression { params.COMMAND == "apply" }
+        expression { params.COMMAND == "apply" && params.CONNECT_TO_DATABASE == true }
       }
       agent {
         ecs {
@@ -75,6 +84,9 @@ pipeline {
         //no-color option set for Terraform commands as Jenkins console unable to output the colour
         //making output difficult to read
         TF_CLI_ARGS="-no-color"
+        TF_VAR_connect_to_database="${params.CONNECT_TO_DATABASE}"
+        TF_VAR_connect_to_backend_checks_efs="${params.CONNECT_TO_BACKEND_CHECKS_EFS}"
+        TF_VAR_connect_to_export_efs="${params.CONNECT_TO_EXPORT_EFS}"
       }
       stages {
         stage('Set up Terraform workspace') {

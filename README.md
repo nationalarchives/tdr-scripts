@@ -4,9 +4,12 @@ This is a repository for scripts which are run infrequently and don't belong wit
 Terraform scripts are put into separate directories inside the terraform directories. Other non-terraform scripts are kept in their own directory at the root of the project.
 
 ### Bastion host creation script
-This is a terraform script to create a bastion host which can be used to connect to the database.
-Postgres client is installed when the instance is created and a .pgpass file is created to store the login credentials on the host. The host disk drive is encrypted.
-The `terraform/bastion` directory contains a Jenkinsfile for creating the bastion instance through Jenkins.
+This is a terraform script to create a bastion host.
+There are three variables which can be set which control what the bastion can connect to.
+* connect_to_database - Postgres client is installed and a file is created at /home/ssm-user/connect.sh. Running this script will connect you to the database in read only mode. 
+* connect_to_backend_checks_efs - The backend checks efs volume is mounted in read only mode in /home/ssm-user/efs/backend-checks
+* connect_to_export_efs - The export efs volume is mounted in read only mode in /home/ssm-user/efs/export
+The `terraform/bastion` directory contains a Jenkinsfile for creating the bastion instance through Jenkins. The [Jenkins job][bastion-jenkins-job] has boolean options for each of the above variables.
 
 To connect to the host
 * Log into the required TDR AWS account (intg, staging, prod)

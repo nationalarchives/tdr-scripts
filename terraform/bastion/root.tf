@@ -22,32 +22,62 @@ resource "aws_iam_role_policy_attachment" "db_connect_policy_attach" {
 }
 
 resource "aws_iam_policy" "bastion_assume_role_policy" {
+  count  = local.database_count
   name   = "TDRBastionAssumeDbRolePolicy${title(local.environment)}"
   policy = templatefile("${path.module}/templates/bastion_assume_role.json.tpl", { role_arn = aws_iam_role.bastion_db_connect_role.arn })
 }
+
+resource "aws_iam_policy" "bastion_connect_to_backend_efs_policy" {
+  count  = local.backend_checks_efs_count
+  name   = "TDRBastionBackendEFSConnectPolicy${title(local.environment)}"
+  policy = templatefile("${path.module}/templates/bastion_connect_to_efs.json.tpl", { file_system_arn = data.aws_efs_file_system.backend_checks_file_system.arn })
+}
+
+resource "aws_iam_policy" "bastion_connect_to_export_efs_policy" {
+  count  = local.export_efs_count
+  name   = "TDRBastionExportEFSConnectPolicy${title(local.environment)}"
+  policy = templatefile("${path.module}/templates/bastion_connect_to_efs.json.tpl", { file_system_arn = data.aws_efs_file_system.export_file_system.arn })
+}
+
 
 data "aws_db_instance" "instance" {
   db_instance_identifier = tolist(data.aws_rds_cluster.consignment_api.cluster_members)[0]
 }
 
-resource "aws_iam_role_policy_attachment" "bastion_assumne_db_role_attach" {
-  policy_arn = aws_iam_policy.bastion_assume_role_policy.arn
-  role       = module.bastion_ec2_instance.role_id
+resource "aws_iam_role_policy_attachment" "bastion_assume_db_role_attach" {
+  count      = local.database_count
+  policy_arn = aws_iam_policy.bastion_assume_role_policy[count.index].arn
+  role       = data.aws_iam_role.bastion_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "bastion_access_backend_efs_attach" {
+  count      = local.backend_checks_efs_count
+  policy_arn = aws_iam_policy.bastion_connect_to_backend_efs_policy[count.index].arn
+  role       = data.aws_iam_role.bastion_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "bastion_access_export_efs_attach" {
+  count      = local.export_efs_count
+  policy_arn = aws_iam_policy.bastion_connect_to_export_efs_policy[count.index].arn
+  role       = data.aws_iam_role.bastion_role.name
 }
 
 resource "aws_iam_role" "tdr_jenkins_run_ssm_document_role" {
+  count              = local.database_count
   name               = "TDRJenkinsRunDocumentRole${title(local.environment)}"
   assume_role_policy = templatefile("${path.module}/templates/assume_role_policy.json.tpl", { account_id = data.aws_ssm_parameter.mgmt_account_number.value })
 }
 
 resource "aws_iam_policy" "tdr_jenkins_run_ssm_document_policy" {
+  count  = local.database_count
   name   = "TDRJenkinsRunDocumentPolicy${title(local.environment)}"
   policy = templatefile("${path.module}/templates/run_ssm_delete_user.json.tpl", { account_id = data.aws_caller_identity.current.account_id })
 }
 
 resource "aws_iam_role_policy_attachment" "tdr_jenkins_run_ssm_attach" {
-  policy_arn = aws_iam_policy.tdr_jenkins_run_ssm_document_policy.arn
-  role       = aws_iam_role.tdr_jenkins_run_ssm_document_role.id
+  count      = local.database_count
+  policy_arn = aws_iam_policy.tdr_jenkins_run_ssm_document_policy[count.index].arn
+  role       = aws_iam_role.tdr_jenkins_run_ssm_document_role[count.index].id
 }
 
 module "bastion_ami" {
@@ -61,23 +91,72 @@ module "bastion_ami" {
   source_ami  = data.aws_ami.amazon_linux_ami.id
 }
 
-
 module "bastion_ec2_instance" {
-  source              = "./tdr-terraform-modules/ec2"
-  common_tags         = local.common_tags
-  environment         = local.environment
-  name                = "bastion"
-  user_data           = "user_data_postgres"
-  user_data_variables = { db_host = split(":", data.aws_db_instance.instance.endpoint)[0], account_number = data.aws_caller_identity.current.account_id, environment = title(local.environment) }
-  ami_id              = module.bastion_ami.encrypted_ami_id
-  security_group_id   = data.aws_security_group.db_security_group.id
-  subnet_id           = data.aws_subnet.private_subnet.id
-  public_key          = var.public_key
+  source      = "./tdr-terraform-modules/ec2"
+  common_tags = local.common_tags
+  environment = local.environment
+  name        = "bastion"
+  user_data   = "user_data_bastion"
+  user_data_variables = {
+    db_host                       = split(":", data.aws_db_instance.instance.endpoint)[0],
+    account_number                = data.aws_caller_identity.current.account_id,
+    environment                   = title(local.environment),
+    backend_checks_file_system_id = data.aws_efs_file_system.backend_checks_file_system.id,
+    export_file_system_id         = data.aws_efs_file_system.export_file_system.id,
+    connect_to_backend_checks_efs = var.connect_to_backend_checks_efs,
+    connect_to_export_efs         = var.connect_to_export_efs,
+    connect_to_database           = var.connect_to_database
+  }
+  ami_id            = module.bastion_ami.encrypted_ami_id
+  security_group_id = module.bastion_ec2_security_group.security_group_id
+  subnet_id         = data.aws_subnet.private_subnet.id
+  public_key        = var.public_key
+  role_name         = data.aws_iam_role.bastion_role.name
 }
 
 module "bastion_delete_user_document" {
+  count               = local.database_count
   source              = "./tdr-terraform-modules/ssm_document"
   content_template    = "bastion_delete_user"
   document_name       = "deleteuser"
   template_parameters = { db_host = data.aws_ssm_parameter.database_url.value, db_username = data.aws_ssm_parameter.database_username.value, db_password = data.aws_ssm_parameter.database_password.value }
+}
+
+module "bastion_ec2_security_group" {
+  source            = "./tdr-terraform-modules/security_group"
+  description       = "Security group which will be used by the bastion EC2 instance"
+  name              = "tdr-database-bastion-security-group-${local.environment}"
+  vpc_id            = data.aws_vpc.vpc.id
+  common_tags       = local.common_tags
+  egress_cidr_rules = [{ port = 0, cidr_blocks = ["0.0.0.0/0"], description = "Allow outbound access on all ports", protocol = "-1" }]
+}
+
+resource "aws_security_group_rule" "allow_access_to_database" {
+  count                    = local.database_count
+  from_port                = 5432
+  protocol                 = "tcp"
+  security_group_id        = data.aws_security_group.db_security_group.id
+  source_security_group_id = module.bastion_ec2_security_group.security_group_id
+  to_port                  = 5432
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "allow_access_to_backend_checks_efs" {
+  count                    = local.backend_checks_efs_count
+  from_port                = 2049
+  protocol                 = "tcp"
+  security_group_id        = data.aws_security_group.efs_backend_checks_security_group.id
+  source_security_group_id = module.bastion_ec2_security_group.security_group_id
+  to_port                  = 2049
+  type                     = "ingress"
+}
+
+resource "aws_security_group_rule" "allow_access_to_export_efs" {
+  count                    = local.export_efs_count
+  from_port                = 2049
+  protocol                 = "tcp"
+  security_group_id        = data.aws_security_group.efs_export_security_group.id
+  source_security_group_id = module.bastion_ec2_security_group.security_group_id
+  to_port                  = 2049
+  type                     = "ingress"
 }
