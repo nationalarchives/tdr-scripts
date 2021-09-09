@@ -49,7 +49,7 @@ pipeline {
         }
       }
     }
-    stage('Create user if creating bastion') {
+    stage('Create user if connecting to database') {
       when {
         beforeAgent true
         expression { params.COMMAND == "apply" && params.CONNECT_TO_DATABASE == true }
@@ -94,7 +94,7 @@ pipeline {
             script {
               dir("terraform/bastion") {
                 echo 'Initializing Terraform...'
-                sh "git clone --branch connect-to-efs-from-bastion https://github.com/nationalarchives/tdr-terraform-modules.git"
+                sh "git clone https://github.com/nationalarchives/tdr-terraform-modules.git"
                 sh 'terraform init'
                 //If Terraform workspace exists continue
                 sh "terraform workspace new ${params.STAGE} || true"
