@@ -3,7 +3,7 @@ def repo = "tdr-scripts"
 
 pipeline {
   agent {
-    label "master"
+    label "built-in"
   }
   parameters {
     choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are creating the instance in")
