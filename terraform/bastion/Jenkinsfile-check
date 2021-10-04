@@ -4,7 +4,7 @@ def tooOld = "False"
 
 pipeline {
   agent {
-    label "master"
+    label "built-in"
   }
   parameters {
     choice(name: "STAGE", choices: ["intg", "staging", "prod"], description: "The stage you are checking the age of")
