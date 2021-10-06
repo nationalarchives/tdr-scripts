@@ -158,19 +158,24 @@ def send_slack_message():
                             release["staging"]["out_of_date"] or release["production"]["out_of_date"]]
 
     if len(out_of_date_releases) > 0:
+        first_three_out_of_date_releases = out_of_date_releases[:3]
         slack_message = {"blocks": []}
 
-        append_section(slack_message, "The following repositories have out of date versions")
+        append_section(slack_message, "Repositories have out of date versions")
         slack_message["blocks"].append({"type": "divider"})
 
-        for out_of_date_release in out_of_date_releases:
+        for out_of_date_release in first_three_out_of_date_releases:
             append_header(slack_message, out_of_date_release["repository"])
             add_stage_info(slack_message, out_of_date_release, "integration")
             add_stage_info(slack_message, out_of_date_release, "staging")
             add_stage_info(slack_message, out_of_date_release, "production")
             slack_message["blocks"].append({"type": "divider"})
+            
+        if len(out_of_date_releases) > 3:
+            append_section(slack_message, "...")
+            slack_message["blocks"].append({"type": "divider"})
 
-        append_section(slack_message, f"<{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
+        append_section(slack_message, f"For full list see here: <{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
         if "SLACK_URL" in os.environ:
             requests.post(os.environ["SLACK_URL"], json=slack_message)
         else:
