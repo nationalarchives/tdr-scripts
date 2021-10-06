@@ -158,6 +158,7 @@ def send_slack_message():
                             release["staging"]["out_of_date"] or release["production"]["out_of_date"]]
 
     if len(out_of_date_releases) > 0:
+        #show first three only to ensure Slack message is not too large so it fails to send
         first_three_out_of_date_releases = out_of_date_releases[:3]
         slack_message = {"blocks": []}
 
@@ -170,9 +171,9 @@ def send_slack_message():
             add_stage_info(slack_message, out_of_date_release, "staging")
             add_stage_info(slack_message, out_of_date_release, "production")
             slack_message["blocks"].append({"type": "divider"})
-            
+
         if len(out_of_date_releases) > 3:
-            append_section(slack_message, "...")
+            append_section(slack_message, "... further repositories are out of date ...")
             slack_message["blocks"].append({"type": "divider"})
 
         append_section(slack_message, f"For full list see here: <{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
