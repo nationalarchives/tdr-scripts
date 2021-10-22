@@ -3,9 +3,9 @@ locals {
   tag_prefix  = "test-keycloak"
   aws_region  = "eu-west-2"
   # The default VPC in the Sandbox environment
-  vpc_id = "vpc-04f38e6c"
+  vpc_id = "vpc-05b63e6afa37144c9"
   # Public subnets in the default VPC
-  subnet_ids = ["subnet-7706850d", "subnet-a4d706e8"]
+  subnet_ids = ["subnet-01f898273e7ae6970", "subnet-04ec47761b96a0a76", "subnet-02cebaa7c56e65a0d"]
   # We don't normally need to connect this Keycloak server to any other
   # services, so it's fine to use a placeholder URL
   frontend_url = "https://example.com"
