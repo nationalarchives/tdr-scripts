@@ -8,7 +8,7 @@ Install requests globally
 Go the the directory of the repository you want to merge the dependabot PRs for and run 
 ```bash
 export GITHUB_TOKEN=mygithubtoken
-/path/to/this/dir/merge.py
+/path/to/tdr-scripts/dependabot-merge/merge.py
 ```
 
 
