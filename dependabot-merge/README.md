@@ -11,9 +11,8 @@ export GITHUB_TOKEN=mygithubtoken
 /path/to/tdr-scripts/dependabot-merge/merge.py
 ```
 
-
 This will:
-* Get all the PRs for a the repository.
+* Get all the PRs for the repository.
 * Filter the ones which were raised by dependabot
 * Filter the ones with passing status checks.
 * Get the package.json changes from each PR.
@@ -21,3 +20,5 @@ This will:
 * Update the package-lock.json
 * Create a new branch and commit and push the changes.
 * Create a PR for the new branch.
+
+You can then approve and merge the new PR. Dependabot will recognise that the master branch has been updated, rebase its own pull requests and then close them as the changes have already been applied. This may take a few minutes.
