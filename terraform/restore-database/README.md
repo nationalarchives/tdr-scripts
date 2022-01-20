@@ -21,7 +21,7 @@ aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].[
 
 ## Run terraform
 
-**Important Note**: restore-database uses v13 of Terraform. Ensure that Terraform v13 is installed before proceeding.
+**Important Note**: restore-database uses v1.1.3 of Terraform. Ensure that Terraform v1.1.3 is installed before proceeding.
 
 ```
 export TF_VAR_tdr_account_number=xxxxxxxxxxx

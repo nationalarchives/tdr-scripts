@@ -10,6 +10,6 @@ data "aws_db_subnet_group" "subnet_group" {
   name = local.subnet_group_name
 }
 
-data "aws_iam_role" task_role {
+data "aws_iam_role" "task_role" {
   name = "${local.db_name}_ecs_task_role_${local.environment}"
 }
