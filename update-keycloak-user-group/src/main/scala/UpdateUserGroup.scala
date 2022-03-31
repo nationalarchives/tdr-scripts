@@ -33,10 +33,14 @@ object UpdateUserGroup extends App {
       for {
         userResource <- usersResource.search(email).asScala.headOption
         parentGroup <- realm.groups().groups().asScala.find(_.getName == "user_type")
+        transferringBodyGroup <- realm.groups().groups().asScala.find(_.getName == "transferring_body_user")
         subGroup <- parentGroup.getSubGroups.asScala.find(_.getName == "judgment_user")
+        incorrectSubGroup <- transferringBodyGroup.getSubGroups.asScala.find(_.getName == "Ministry of Justice")
+        correctSubGroup <- transferringBodyGroup.getSubGroups.asScala.find(_.getName == "HM Courts and Tribunal Service")
       } yield {
-        usersResource.get(userResource.getId).joinGroup(subGroup.getId)
-        println(s"Added $email to judgment group")
+        usersResource.get(userResource.getId).leaveGroup(incorrectSubGroup.getId)
+        usersResource.get(userResource.getId).joinGroup(correctSubGroup.getId)
+        println(s"Added $email to HM Courts and Tribunal Service group")
       }
     })
   }
