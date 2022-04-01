@@ -34,7 +34,7 @@ object UpdateUserGroup extends App {
         userResource <- usersResource.search(email).asScala.headOption
         transferringBodyGroup <- realm.groups().groups().asScala.find(_.getName == "transferring_body_user")
         incorrectSubGroup <- transferringBodyGroup.getSubGroups.asScala.find(_.getName == "Ministry of Justice")
-        correctSubGroup <- transferringBodyGroup.getSubGroups.asScala.find(_.getName == "HM Courts and Tribunal Service")
+        correctSubGroup <- transferringBodyGroup.getSubGroups.asScala.find(_.getName == "HM Courts and Tribunals Service")
       } yield {
         usersResource.get(userResource.getId).leaveGroup(incorrectSubGroup.getId)
         usersResource.get(userResource.getId).joinGroup(correctSubGroup.getId)
