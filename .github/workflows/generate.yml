@@ -13,6 +13,7 @@ jobs:
             git config --global user.email digitalpreservation@nationalarchives.gov.uk
             git config --global user.name tna-digital-archiving-jenkins
             cd release-versions
+            pip install -r requirements.txt
             python generate_release_file.py
             cp output.html ../docs
             git add ../docs
