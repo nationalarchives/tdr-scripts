@@ -176,7 +176,7 @@ def send_slack_message():
             append_section(slack_message, "... further repositories are out of date ...")
             slack_message["blocks"].append({"type": "divider"})
 
-        append_section(slack_message, f"For full list see here: <{os.getenv('BUILD_URL', 'h')}Release_20Version_20Report/|Click for the report>")
+        append_section(slack_message, f"For full list see here: <https://nationalarchives.github.io/tdr-scripts/output.html|Click for the report>")
         if "SLACK_URL" in os.environ:
             requests.post(os.environ["SLACK_URL"], json=slack_message)
         else:
