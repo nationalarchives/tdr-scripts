@@ -6,17 +6,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-        with:
-          ref: scripts-pages
-          token: ${{ secrets.WORKFLOW_PAT }}
       - run: |
             git config --global user.email digitalpreservation@nationalarchives.gov.uk
             git config --global user.name tna-digital-archiving-jenkins
             cd release-versions
             pip install -r requirements.txt
             python generate_release_file.py
-            cp output.html ../docs
-            git add ../docs
+            cd ..
+      - uses: actions/checkout@v3
+        with:
+          ref: scripts-pages
+          token: ${{ secrets.WORKFLOW_PAT }}
+          path: scripts-pages
+      - run: |
+            cd scripts-pages 
+            cp ../release-versions/output.html docs/
+            git add docs
             git commit -m "Add release versions"
             git push
         env:
