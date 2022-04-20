@@ -13,6 +13,9 @@ jobs:
             pip install -r requirements.txt
             python generate_release_file.py
             cd ..
+        env:
+          GITHUB_API_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK }}
       - uses: actions/checkout@v3
         with:
           ref: scripts-pages
@@ -24,6 +27,3 @@ jobs:
             git add docs
             git commit -m "Add release versions"
             git push
-        env:
-          GITHUB_API_TOKEN: ${{ secrets.WORKFLOW_PAT }}
-          SLACK_URL: ${{ secrets.SLACK_WEBHOOK }}
