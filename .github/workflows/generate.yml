@@ -1,3 +1,4 @@
+name: Generate release versions
 on:
   workflow_dispatch:
 jobs:
