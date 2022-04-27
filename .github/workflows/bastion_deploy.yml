@@ -58,7 +58,7 @@ jobs:
         run: aws ssm send-command --targets Key=tag:Name,Values=bastion-ec2-instance-${{ github.event.inputs.environment }} --document-name deleteuser
       - name: Create user if connecting to the database
         if: ${{ github.event.inputs.command == 'apply' && github.event.inputs.connect-to-database == 'true' }}
-        run: aws lambda invoke --function-name tdr-create-bastion-user-${{ github.event.inputs.environment }}
+        run: aws lambda invoke --function-name tdr-create-bastion-user-${{ github.event.inputs.environment }} out
       - uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubTerraformAssumeRole${{ steps.set-environment-names.outputs.title-environment }}
