@@ -53,13 +53,19 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/TDRGithubActionsRunDocumentRole${{ steps.set-environment-names.outputs.title-environment }}
           aws-region: eu-west-2
-          role-session-name: TerraformRole
+          role-session-name: DeleteUserRole
       - name: Run delete user script
         if: ${{ steps.configure-aws-credentials.outcome == 'success' }}
         run: aws ssm send-command --targets Key=tag:Name,Values=bastion-ec2-instance-${{ github.event.inputs.environment }} --document-name deleteuser
       - name: Create user if connecting to the database
         if: ${{ github.event.inputs.command == 'apply' && github.event.inputs.connect-to-database == 'true' }}
         run: aws lambda invoke --function-name tdr-create-bastion-user-${{ github.event.inputs.environment }}
+      - id: configure-aws-credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubTerraformAssumeRole${{ steps.set-environment-names.outputs.title-environment }}
+          aws-region: eu-west-2
+          role-session-name: TerraformRole
       - name: Run Terraform
         env:
           TF_VAR_tdr_account_number: ${{ secrets.ACCOUNT_NUMBER }}
