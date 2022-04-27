@@ -4,10 +4,17 @@
     {
       "Effect": "Allow",
       "Principal": {
-        "AWS": "arn:aws:iam::${account_id}:root"
+        "Federated": "arn:aws:iam::${account_id}:oidc-provider/token.actions.githubusercontent.com"
       },
-      "Action": "sts:AssumeRole",
-      "Condition": {}
+      "Action": "sts:AssumeRoleWithWebIdentity",
+      "Condition": {
+        "StringEquals": {
+          "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+        },
+        "StringLike": {
+          "token.actions.githubusercontent.com:sub": "repo:nationalarchives/tdr-*"
+        }
+      }
     }
   ]
 }
