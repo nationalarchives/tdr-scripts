@@ -1,6 +1,5 @@
 name: Deploy bastion
 on:
-  push:
   workflow_dispatch:
     inputs:
       environment:
