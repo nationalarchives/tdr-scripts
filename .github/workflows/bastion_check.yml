@@ -18,12 +18,12 @@ jobs:
           submodules: recursive
           token: ${{ secrets.WORKFLOW_PAT }}
       - id: set-environment-names
-        run: |
-          env = "${{ matrix.environment }}"
-          print(f"::set-output name=account_number_secret::{env.upper()}_ACCOUNT_NUMBER")
+        run: print(f"::set-output name=account_number_secret::{'${{ matrix.environment }}'.upper()}_ACCOUNT_NUMBER")
         shell: python
       - id: get-age
-        run: python ./.github/scripts/check_ec2_instance_age.py ${{ secrets[steps.set-environment-names.outputs.account_number_secret] }} ${{ matrix.environment }} bastion-ec2-instance-${{ matrix.environment }} 1
+        run: |
+          pip install boto3
+          python ./.github/scripts/check_ec2_instance_age.py ${{ secrets[steps.set-environment-names.outputs.account_number_secret] }} ${{ matrix.environment }} bastion-ec2-instance-${{ matrix.environment }} 1
       - if: ${{ steps.get-age.outputs.bastion-age == 'True' }}
         run: gh workflow run bastion_deploy.yml -f environment=${{ matrix.environment }} -f command=destroy -f connect-to-database=false -f connect-to-backend-checks-efs=false -f connect-to-export-efs=false --ref add-bastion-github-actions
       - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
