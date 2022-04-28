@@ -62,6 +62,24 @@ resource "aws_iam_role_policy_attachment" "bastion_access_export_efs_attach" {
   role       = data.aws_iam_role.bastion_role.name
 }
 
+resource "aws_iam_role" "tdr_github_actions_run_ssm_document_role" {
+  count              = local.database_count
+  name               = "TDRGithubActionsRunDocumentRole${title(local.environment)}"
+  assume_role_policy = templatefile("${path.module}/templates/assume_role_policy.json.tpl", { account_id = data.aws_ssm_parameter.mgmt_account_number.value })
+}
+
+resource "aws_iam_policy" "tdr_github_actions_run_ssm_document_policy" {
+  count  = local.database_count
+  name   = "TDRGithubActionsRunDocumentPolicy${title(local.environment)}"
+  policy = templatefile("${path.module}/templates/run_ssm_delete_user.json.tpl", { account_id = data.aws_caller_identity.current.account_id })
+}
+
+resource "aws_iam_role_policy_attachment" "tdr_github_actions_run_ssm_attach" {
+  count      = local.database_count
+  policy_arn = aws_iam_policy.tdr_github_actions_run_ssm_document_policy[count.index].arn
+  role       = aws_iam_role.tdr_github_actions_run_ssm_document_role[count.index].id
+}
+
 module "bastion_ami" {
   source      = "./tdr-terraform-modules/ami"
   project     = var.project
