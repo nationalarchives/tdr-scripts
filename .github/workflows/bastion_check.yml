@@ -5,7 +5,8 @@ on:
     - cron: '15 8 * * *'
 
 name: Run bastion check
-
+permissions:
+  id-token: write
 jobs:
   check:
     strategy:
