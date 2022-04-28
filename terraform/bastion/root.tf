@@ -65,7 +65,7 @@ resource "aws_iam_role_policy_attachment" "bastion_access_export_efs_attach" {
 resource "aws_iam_role" "tdr_github_actions_run_ssm_document_role" {
   count              = local.database_count
   name               = "TDRGithubActionsRunDocumentRole${title(local.environment)}"
-  assume_role_policy = templatefile("${path.module}/templates/assume_role_policy.json.tpl", { account_id = data.aws_ssm_parameter.mgmt_account_number.value })
+  assume_role_policy = templatefile("${path.module}/templates/assume_role_policy.json.tpl", { account_id = data.aws_caller_identity.current.account_id })
 }
 
 resource "aws_iam_policy" "tdr_github_actions_run_ssm_document_policy" {
