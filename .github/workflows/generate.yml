@@ -1,6 +1,8 @@
 name: Generate release versions
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '30 11 * * *'
 jobs:
   generate:
     runs-on: ubuntu-latest
