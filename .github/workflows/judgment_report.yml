@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v3
       - run: |
           cd judgment-report
+          pip install -r requirements.txt
           python report.py ${{ github.event.inputs.environment }} ${{ github.event.inputs.email }}
         env:
           PROD_REPORTING_SECRET: ${{ secrets.PROD_REPORTING_SECRET }}
