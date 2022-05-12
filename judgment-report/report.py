@@ -6,13 +6,25 @@ from slack_sdk import WebClient
 import sys
 import requests
 import csv
-import os
+import boto3
+
+emails = sys.argv[2:]
 
 environment = sys.argv[1]
-email = sys.argv[2]
 environment_map = {"intg": "-integration", "staging": "-staging", "prod": ""}
 client_id = "tdr-reporting"
-client_secret = os.environ[f"{environment.upper()}_REPORTING_SECRET"]
+ssm_client = boto3.client("ssm")
+
+
+def get_secret(name):
+    return ssm_client.get_parameter(
+        Name=name,
+        WithDecryption=True
+    )['Parameter']['Value']
+
+
+slack_bot_token = get_secret(f'/{environment}/slack/bot')
+client_secret = get_secret(f'/{environment}/keycloak/reporting_client/secret')
 
 
 class Consignment(Type):
@@ -93,12 +105,14 @@ while has_next_page:
     current_cursor = consignments.edges[-1].cursor if len(consignments.edges) > 0 else None
 
 with open('report.csv', 'w', newline='') as csvfile:
-    fieldnames = ['CreatedDateTime','ConsignmentReference', 'ConsignmentId', 'ConsignmentType', 'UserId', 'ExportDateTime']
+    fieldnames = ['CreatedDateTime', 'ConsignmentReference', 'ConsignmentId', 'ConsignmentType', 'UserId',
+                  'ExportDateTime']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(all_judgment_consignments)
 
-client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
-user_data = client.users_lookupByEmail(email=email)
-with open('report.csv', 'rb') as csvfile:
-    client.files_upload(file=csvfile, channels=[user_data["user"]["id"]])
+client = WebClient(token=slack_bot_token)
+for email in emails:
+    user_data = client.users_lookupByEmail(email=email)
+    with open('report.csv', 'rb') as csvfile:
+        client.files_upload(file=csvfile, channels=[user_data["user"]["id"]])

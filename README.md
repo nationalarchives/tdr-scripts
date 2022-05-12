@@ -131,9 +131,13 @@ pip install -r requirements.txt
 
 #### Running the report
 This report needs AWS credentials with SSM access to work.
-These can be set with environment variables, in `~/.aws/credentials` or using `aws2-wrap`
+These can be set with environment variables, in `~/.aws/credentials` or using sso profiles.
 
-Once these are set you can run `python report.py environment_name` and it will create a file called `report.csv` in the same directory.
+Once these are set you can run: 
+
+`python report.py environment_name email_address_1 email_address_2`
+
+It will create a file called `report.csv` in the same directory and will send a slack message with the file to all of the email addresses provided as arguments. You can provide zero or more email addresses.
 
 #### Cleaning up
 ```bash
