@@ -1,2 +1,3 @@
 requests
 sgqlc
+slack_sdk
