@@ -2,19 +2,17 @@ from sgqlc.endpoint.http import HTTPEndpoint
 from sgqlc.types import Type, Field, list_of
 from sgqlc.types.relay import Connection
 from sgqlc.operation import Operation
-import boto3
+from slack_sdk import WebClient
 import sys
 import requests
 import csv
+import os
 
 environment = sys.argv[1]
+email = sys.argv[2]
 environment_map = {"intg": "-integration", "staging": "-staging", "prod": ""}
 client_id = "tdr-reporting"
-ssm_client = boto3.client("ssm")
-client_secret = ssm_client.get_parameter(
-    Name=f'/{environment}/keycloak/reporting_client/secret',
-    WithDecryption=True
-)['Parameter']['Value']
+client_secret = os.environ["PROD_REPORTING_SECRET"]
 
 
 class Consignment(Type):
@@ -23,6 +21,7 @@ class Consignment(Type):
     consignmentReference = Field(str)
     userid = Field(str)
     exportDatetime = Field(str)
+    createdDatetime = Field(str)
 
 
 class Edge(Type):
@@ -56,6 +55,7 @@ def get_query(cursor=None):
     node.consignmentReference()
     node.userid()
     node.exportDatetime()
+    node.createdDatetime()
     edges.cursor()
     consignments_query.page_info.__fields__('has_next_page')
     consignments_query.page_info.__fields__(end_cursor=True)
@@ -64,6 +64,7 @@ def get_query(cursor=None):
 
 def node_to_dict(node):
     return {
+        "CreatedDateTime": node.createdDatetime,
         "ConsignmentReference": node.consignmentReference,
         "ConsignmentId": node.consignmentid,
         "ConsignmentType": node.consignmentType,
@@ -91,7 +92,12 @@ while has_next_page:
     current_cursor = consignments.edges[-1].cursor if len(consignments.edges) > 0 else None
 
 with open('report.csv', 'w', newline='') as csvfile:
-    fieldnames = ['ConsignmentReference', 'ConsignmentId', 'ConsignmentType', 'UserId', 'ExportDateTime']
+    fieldnames = ['CreatedDateTime','ConsignmentReference', 'ConsignmentId', 'ConsignmentType', 'UserId', 'ExportDateTime']
     writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
     writer.writeheader()
     writer.writerows(all_judgment_consignments)
+
+client = WebClient(token=os.environ["SLACK_BOT_TOKEN"])
+user_data = client.users_lookupByEmail(email=email)
+with open('report.csv', 'rb') as csvfile:
+    client.files_upload(file=csvfile, channels=[user_data["user"]["id"]])
