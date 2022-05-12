@@ -12,7 +12,7 @@ environment = sys.argv[1]
 email = sys.argv[2]
 environment_map = {"intg": "-integration", "staging": "-staging", "prod": ""}
 client_id = "tdr-reporting"
-client_secret = os.environ["PROD_REPORTING_SECRET"]
+client_secret = os.environ[f"{environment.upper()}_REPORTING_SECRET"]
 
 
 class Consignment(Type):
@@ -42,6 +42,7 @@ def get_token():
     auth_url = f"{host}/auth/realms/tdr/protocol/openid-connect/token"
     grant_type = {"grant_type": "client_credentials"}
     auth_response = requests.post(auth_url, data=grant_type, auth=(client_id, client_secret))
+    print(auth_response.status_code)
     return auth_response.json()['access_token']
 
 
