@@ -1,4 +1,4 @@
-name: Deploy bastion
+name: Run Judgment Report
 on:
   push:
   workflow_dispatch:
