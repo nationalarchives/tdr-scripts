@@ -6,3 +6,4 @@ tdr-terraform-modules
 *.tfstate.backup
 terraform.tfstate.d
 target
+venv

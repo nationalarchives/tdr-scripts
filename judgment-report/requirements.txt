@@ -1,0 +1,4 @@
+requests
+sgqlc
+slack_sdk
+boto3
