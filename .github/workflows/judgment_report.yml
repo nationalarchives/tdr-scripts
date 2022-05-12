@@ -1,6 +1,5 @@
 name: Run Judgment Report
 on:
-  push:
   workflow_dispatch:
     inputs:
       environment:
