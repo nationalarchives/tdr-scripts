@@ -6,23 +6,23 @@
     "secrets": [
       {
         "valueFrom": "${url_path}",
-        "name": "DB_ADDR"
+        "name": "KC_DB_URL_HOST"
       },
       {
         "valueFrom": "${username_path}",
-        "name": "DB_USER"
+        "name": "KC_DB_USERNAME"
       },
       {
         "valueFrom": "${password_path}",
-        "name": "DB_PASSWORD"
+        "name": "KC_DB_PASSWORD"
       },
       {
         "valueFrom": "${admin_user_path}",
-        "name": "KEYCLOAK_USER"
+        "name": "KEYCLOAK_ADMIN"
       },
       {
         "valueFrom": "${admin_password_path}",
-        "name": "KEYCLOAK_PASSWORD"
+        "name": "KEYCLOAK_ADMIN_PASSWORD"
       },
       {
         "valueFrom" : "${client_secret_path}",
@@ -59,11 +59,15 @@
     ],
     "environment": [
       {
+        "name": "KEYCLOAK_HOST",
+        "value": "auth.tdr-sandbox.nationalarchives.gov.uk"
+      },
+      {
         "name" : "FRONTEND_URL",
         "value" : "${frontend_url}"
       },
       {
-        "name" : "DB_VENDOR",
+        "name" : "KC_DB",
         "value" : "postgres"
       },
       {
