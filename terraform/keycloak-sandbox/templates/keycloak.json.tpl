@@ -25,7 +25,7 @@
         "name": "KEYCLOAK_PASSWORD"
       },
       {
-        "valueFrom" : "${client_secret_path}",
+        "valueFrom": "${client_secret_path}",
         "name": "CLIENT_SECRET"
       },
       {
@@ -59,15 +59,15 @@
     ],
     "environment": [
       {
-        "name" : "FRONTEND_URL",
-        "value" : "${frontend_url}"
+        "name": "FRONTEND_URL",
+        "value": "${frontend_url}"
       },
       {
-        "name" : "DB_VENDOR",
-        "value" : "postgres"
+        "name": "DB_VENDOR",
+        "value": "postgres"
       },
       {
-        "name" : "KEYCLOAK_IMPORT",
+        "name": "KEYCLOAK_IMPORT",
         "value": "/tmp/tdr-realm.json"
       },
       {
@@ -77,6 +77,10 @@
       {
         "name": "TDR_ENV",
         "value": "${app_environment}"
+      },
+      {
+        "name": "PROXY_ADDRESS_FORWARDING",
+        "value": "true"
       }
     ],
     "networkMode": "awsvpc",
