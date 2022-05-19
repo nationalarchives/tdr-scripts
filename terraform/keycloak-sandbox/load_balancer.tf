@@ -72,8 +72,8 @@ data "aws_acm_certificate" "auth_certificate" {
 resource "aws_alb_listener" "keycloak_http" {
   load_balancer_arn = aws_alb.keycloak.id
   port              = 443
-  protocol = "HTTPS"
-  certificate_arn = data.aws_acm_certificate.auth_certificate.arn
+  protocol          = "HTTPS"
+  certificate_arn   = data.aws_acm_certificate.auth_certificate.arn
 
   default_action {
     target_group_arn = aws_alb_target_group.keycloak.id
