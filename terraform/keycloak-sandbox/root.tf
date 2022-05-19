@@ -27,6 +27,18 @@ resource "aws_ecs_task_definition" "keycloak_task" {
   )
 }
 
+resource "aws_route53_record" "dns" {
+  zone_id = data.aws_route53_zone.hosted_zone.id
+  name    = "auth"
+  type    = "A"
+
+  alias {
+    name                   = aws_alb.keycloak.dns_name
+    zone_id                = aws_alb.keycloak.zone_id
+    evaluate_target_health = false
+  }
+}
+
 resource "aws_ecs_service" "keycloak_service" {
   name                              = "keycloak_service_${var.environment}"
   cluster                           = aws_ecs_cluster.keycloak_ecs.id

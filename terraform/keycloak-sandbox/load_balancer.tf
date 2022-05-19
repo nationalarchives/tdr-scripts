@@ -43,8 +43,8 @@ resource "aws_security_group" "load_balancer" {
 
   ingress {
     protocol    = "tcp"
-    from_port   = 80
-    to_port     = 80
+    from_port   = 443
+    to_port     = 443
     cidr_blocks = ["0.0.0.0/0"]
   }
 
@@ -63,11 +63,17 @@ resource "aws_security_group" "load_balancer" {
   )
 }
 
+data "aws_acm_certificate" "auth_certificate" {
+  domain = "auth.tdr-sandbox.nationalarchives.gov.uk"
+}
+
 # Use HTTP so we don't have to create a certificate in the Sandbox environment.
 # This is not ideal, but this Sandbox ALB will not be used for real data.
 resource "aws_alb_listener" "keycloak_http" {
   load_balancer_arn = aws_alb.keycloak.id
-  port              = 80
+  port              = 443
+  protocol          = "HTTPS"
+  certificate_arn   = data.aws_acm_certificate.auth_certificate.arn
 
   default_action {
     target_group_arn = aws_alb_target_group.keycloak.id
