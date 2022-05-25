@@ -51,7 +51,7 @@ class Query(Type):
 
 def get_token():
     host = f"https://auth.tdr{environment_map[environment]}.nationalarchives.gov.uk"
-    auth_url = f"{host}/auth/realms/tdr/protocol/openid-connect/token"
+    auth_url = f"{host}/realms/tdr/protocol/openid-connect/token"
     grant_type = {"grant_type": "client_credentials"}
     auth_response = requests.post(auth_url, data=grant_type, auth=(client_id, client_secret))
     print(auth_response.status_code)
