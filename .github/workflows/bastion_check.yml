@@ -35,6 +35,8 @@ jobs:
           python ./.github/scripts/check_ec2_instance_age.py ${{ secrets[steps.set-environment-names.outputs.account-number-secret] }} ${{ matrix.environment }} bastion-ec2-instance-${{ matrix.environment }} 1
       - if: ${{ steps.get-age.outputs.bastion-age == 'True' }}
         run: gh workflow run bastion_deploy.yml -f environment=${{ matrix.environment }} -f command=destroy -f connect-to-database=false -f connect-to-backend-checks-efs=false -f connect-to-export-efs=false --ref add-bastion-github-actions
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
       - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
         if: ${{ steps.get-age.outputs.bastion-age == 'True' }}
         with:
