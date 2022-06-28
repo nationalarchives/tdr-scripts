@@ -93,5 +93,5 @@ jobs:
       - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
         if: success()
         with:
-          message: "*Bastion instance* The ${{ github.event.inputs.command }} script has been run for the ${{ github.event.inputs.environment }} environment"
+          message: "*Bastion instance* The ${{ github.event.inputs.command }} script has been run for the ${{ github.event.inputs.environment }} environment by ${{ github.actor }}"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
