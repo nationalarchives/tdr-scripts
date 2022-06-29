@@ -88,7 +88,7 @@ jobs:
       - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
         if: failure()
         with:
-          message: "*Bastion script* :warning: The script to ${{ github.event.inputs.command }} the bastion run by ${{ github.actor }} has failed"
+          message: "*Bastion script* :warning: The script to ${{ github.event.inputs.command }} the bastion, run by ${{ github.actor }}, has failed"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
       - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
         if: success()
