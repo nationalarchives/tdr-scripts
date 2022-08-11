@@ -59,7 +59,7 @@ data "aws_vpc" "vpc" {
 }
 
 data "aws_security_group" "db_security_group" {
-  name = "tdr-consignment-api-database-instance-${local.environment}"
+  name = "consignmentapi-database-security-group-${local.environment}"
 }
 
 data "aws_security_group" "efs_backend_checks_security_group" {
