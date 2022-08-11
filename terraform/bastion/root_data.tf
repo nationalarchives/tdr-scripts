@@ -30,7 +30,7 @@ data "aws_ssm_parameter" "mgmt_account_number" {
 
 data "aws_subnet" "private_subnet" {
   tags = {
-    "Name" = "tdr-private-subnet-0-${local.environment}"
+    "Name" = "tdr-efs-private-subnet-backend-checks-efs-0-${local.environment}"
   }
 }
 
@@ -59,7 +59,7 @@ data "aws_vpc" "vpc" {
 }
 
 data "aws_security_group" "db_security_group" {
-  name = "consignmentapi-database-security-group-${local.environment}"
+  name = "tdr-consignment-api-database-instance-${local.environment}"
 }
 
 data "aws_security_group" "efs_backend_checks_security_group" {
