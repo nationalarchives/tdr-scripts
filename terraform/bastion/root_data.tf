@@ -8,20 +8,20 @@ data "aws_ami" "amazon_linux_ami" {
   most_recent = true
 }
 
-data "aws_rds_cluster" "consignment_api" {
-  cluster_identifier = split(".", data.aws_ssm_parameter.database_url.value)[0]
+data "aws_db_instance" "consignment_api" {
+  db_instance_identifier = split(".", data.aws_ssm_parameter.database_url.value)[0]
 }
 
 data "aws_ssm_parameter" "database_url" {
-  name = "/${local.environment}/${var.service}/database/url"
+  name = "/${local.environment}/${var.service}/instance/url"
 }
 
 data "aws_ssm_parameter" "database_username" {
-  name = "/${local.environment}/${var.service}/database/username"
+  name = "/${local.environment}/${var.service}/instance/username"
 }
 
 data "aws_ssm_parameter" "database_password" {
-  name = "/${local.environment}/${var.service}/database/password"
+  name = "/${local.environment}/${var.service}/instance/password"
 }
 
 data "aws_ssm_parameter" "mgmt_account_number" {
@@ -59,7 +59,7 @@ data "aws_vpc" "vpc" {
 }
 
 data "aws_security_group" "db_security_group" {
-  name = "consignmentapi-database-security-group-${local.environment}"
+  name = "tdr-consignment-api-database-instance-${local.environment}"
 }
 
 data "aws_security_group" "efs_backend_checks_security_group" {

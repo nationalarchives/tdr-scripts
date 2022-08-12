@@ -13,20 +13,14 @@ Set a helper variable as some fields need `consignmentapi` and some need `consig
 
 `export DB_NO_DASH=$(echo $TF_VAR_database | sed  's/-//g')`
 
-If you want to restore to a particular point in time instead of from the most recent snapshot you can set the `TF_VAR_restore_time` environment variable to a date and time in UTC format. To get the earliest and latest available times
-
-```
-aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].[LatestRestorableTime, EarliestRestorableTime]" --output table
-```
-
 ## Run terraform
 
 **Important Note**: restore-database uses v1.1.3 of Terraform. Ensure that Terraform v1.1.3 is installed before proceeding.
 
 ```
 export TF_VAR_tdr_account_number=xxxxxxxxxxx
-export TF_VAR_cluster_identifier=$(aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].DBClusterIdentifier" --output text)
-export TF_VAR_engine_version=$(aws rds describe-db-clusters --query="DBClusters[?DatabaseName=='$DB_NO_DASH'].EngineVersion" --output text)
+export TF_VAR_instance_identifier=$(aws rds describe-db-instances --query="DBInstances[?DBName=='$DB_NO_DASH'].DBInstanceIdentifier" --output text)
+export TF_VAR_engine_version=$(aws rds describe-db-instances --query="DBInstances[?DBName=='$DB_NO_DASH'].EngineVersion" --output text)
 export PROFILE=intg # replace with staging or prod if using those environments
 
 terraform init
@@ -42,11 +36,7 @@ aws ecs update-service --service $DB_NO_DASH_service_$PROFILE --cluster $DB_NO_D
 ```
 
 ## Copy parts of the data from one cluster to another.
-If you don't want to move the API over to point to the new cluster dump sql statements from the new cluster to the existing one, then you'll need to create a bastion host to allow you to connect to both databases. This is a manual process for now. The steps will roughly be:
-* Create an EC2 instance in the correct VPC
-* For the consignment API, create a role. Attach the `TDRConsignmentApiAllowIAMAuthPolicy${environment}`, `RestoredDbAccessPolicy${environment}` and `AmazonSSMManagedInstanceCore` policies. For the keycloak DB, this isn't needed as it doesn't use IAM authentication. Then create another role with a policy with permissions to assume the first new role and attach this to the EC2 instance. 
-* Attach the security group for the ECS task to the EC2 instance.
-* Connect to the EC2 instance. Then either connect to the database using IAM auth using a script similar to [the one for the bastion](https://github.com/nationalarchives/tdr-terraform-modules/blob/master/ec2/templates/user_data_postgres.sh.tpl) or connect using psql and the admin keycloak db credentials from the parameter store.
+If you want to manually copy parts of the data from the old instance to the new one, you will need to [create a bastion](https://github.com/nationalarchives/tdr-scripts/actions/workflows/bastion_deploy.yml) and do this manually.
 
 ## Revert the changes
 This will need to be done whether or not you've switched the ECS service to the new cluster

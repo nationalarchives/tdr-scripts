@@ -1,3 +1,6 @@
 [submodule "terraform/bastion/tdr-terraform-modules"]
 	path = terraform/bastion/tdr-terraform-modules
 	url = https://github.com/nationalarchives/tdr-terraform-modules.git
+[submodule "terraform/restore-database/tdr-terraform-modules"]
+	path = terraform/restore-database/tdr-terraform-modules
+	url = https://github.com/nationalarchives/tdr-terraform-modules.git
