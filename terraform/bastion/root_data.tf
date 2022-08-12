@@ -30,7 +30,7 @@ data "aws_ssm_parameter" "mgmt_account_number" {
 
 data "aws_subnet" "private_subnet" {
   tags = {
-    "Name" = "tdr-private-subnet-0-${local.environment}"
+    "Name" = "tdr-efs-private-subnet-backend-checks-efs-0-${local.environment}"
   }
 }
 
