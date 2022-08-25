@@ -13,7 +13,7 @@ resource "aws_iam_role" "bastion_db_connect_role" {
 
 resource "aws_iam_policy" "bastion_db_connect_policy" {
   name   = "TDRBastionAccessDbPolicy${title(local.environment)}"
-  policy = templatefile("${path.module}/templates/bastion_access_db_policy.json.tpl", { account_id = data.aws_caller_identity.current.account_id, cluster_id = data.aws_rds_cluster.consignment_api.cluster_resource_id })
+  policy = templatefile("${path.module}/templates/bastion_access_db_policy.json.tpl", { account_id = data.aws_caller_identity.current.account_id, instance_id = data.aws_db_instance.consignment_api.resource_id })
 }
 
 resource "aws_iam_role_policy_attachment" "db_connect_policy_attach" {
@@ -37,11 +37,6 @@ resource "aws_iam_policy" "bastion_connect_to_export_efs_policy" {
   count  = local.export_efs_count
   name   = "TDRBastionExportEFSConnectPolicy${title(local.environment)}"
   policy = templatefile("${path.module}/templates/bastion_connect_to_efs.json.tpl", { file_system_arn = data.aws_efs_file_system.export_file_system.arn })
-}
-
-
-data "aws_db_instance" "instance" {
-  db_instance_identifier = tolist(data.aws_rds_cluster.consignment_api.cluster_members)[0]
 }
 
 resource "aws_iam_role_policy_attachment" "bastion_assume_db_role_attach" {
@@ -98,7 +93,7 @@ module "bastion_ec2_instance" {
   name        = "bastion"
   user_data   = "user_data_bastion"
   user_data_variables = {
-    db_host                       = split(":", data.aws_db_instance.instance.endpoint)[0],
+    db_host                       = split(":", data.aws_db_instance.consignment_api.endpoint)[0],
     account_number                = data.aws_caller_identity.current.account_id,
     environment                   = title(local.environment),
     backend_checks_file_system_id = data.aws_efs_file_system.backend_checks_file_system.id,

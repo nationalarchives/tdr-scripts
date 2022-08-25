@@ -8,8 +8,8 @@ variable "restore_time" {
   default     = ""
 }
 
-variable "cluster_identifier" {
-  description = "The cluster identifier. See the README for how to find this"
+variable "instance_identifier" {
+  description = "The instance identifier. See the README for how to find this"
 }
 
 variable "engine_version" {
