@@ -34,7 +34,7 @@ jobs:
           pip install boto3
           python ./.github/scripts/check_ec2_instance_age.py ${{ secrets[steps.set-environment-names.outputs.account-number-secret] }} ${{ matrix.environment }} bastion-ec2-instance-${{ matrix.environment }} 1
       - if: ${{ steps.get-age.outputs.bastion-age == 'True' }}
-        run: ./.github/scripts/run-and-approve-bastion-destroy.sh
+        run: ./.github/scripts/run-and-approve-bastion-destroy.sh ${{ matrix.environment }}
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
       - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
