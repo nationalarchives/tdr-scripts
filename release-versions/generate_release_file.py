@@ -4,6 +4,7 @@ import requests
 import os
 from datetime import datetime
 import json
+import time
 
 releases = []
 
@@ -23,6 +24,8 @@ def get_versions(repository_name):
     filtered_release_branches = dict(ChainMap(*[{branch["name"]: branch} for branch in branches if
                                                 branch["name"] in ["release-intg", "release-staging",
                                                                    "release-prod"]]))
+    protected_branches = [branch for branch in branches if branch["protected"]]
+    default_branch = protected_branches[0]["name"] if len(protected_branches) > 0 else "master"
 
     if len(filtered_release_branches) > 0:
         tags = requests.get(url(repository_name, "tags"), headers=headers).json()
@@ -36,6 +39,7 @@ def get_versions(repository_name):
 
         return {
             "repository": repository_name,
+            "default_branch": default_branch,
             "integration": integration_view_model(intg_branch, max_version),
             "staging": higher_environment_branch_view_model(staging_branch, intg_branch, max_version),
             "production": higher_environment_branch_view_model(prod_branch, staging_branch, max_version),
@@ -137,18 +141,23 @@ def add_stage_info(message, release, stage):
     append_section(message, f"{release[stage]['version']} {stage.title()} version {release[stage]['date_diff']}")
 
 
-def create_html_summary():
-    loader = FileLoader(".")
-    template = loader.load_template('index.html')
+def create_releases():
     repos = requests.get(
         "https://api.github.com/orgs/nationalarchives/teams/transfer-digital-records/repos?per_page=100",
         headers=headers).json()
-    filtered_repos = sorted([repo["name"] for repo in repos if not repo["archived"] and not repo["disabled"]])
+    filtered_repos = sorted([repo["name"] for repo in repos if
+                             not repo["archived"] and not repo["disabled"]])
 
     for repo in filtered_repos:
         versions = get_versions(repo)
         if versions is not None:
             releases.append(versions)
+
+
+def create_html_summary():
+    loader = FileLoader(".")
+    template = loader.load_template('index.html')
+
     with open("output.html", "w") as output:
         output.write(template.render({'releases': releases}, loader=loader))
 
@@ -158,7 +167,7 @@ def send_slack_message():
                             release["staging"]["out_of_date"] or release["production"]["out_of_date"]]
 
     if len(out_of_date_releases) > 0:
-        #show first three only to ensure Slack message is not too large so it fails to send
+        # show first three only to ensure Slack message is not too large so it fails to send
         first_three_out_of_date_releases = out_of_date_releases[:3]
         slack_message = {"blocks": []}
 
@@ -176,12 +185,48 @@ def send_slack_message():
             append_section(slack_message, "... further repositories are out of date ...")
             slack_message["blocks"].append({"type": "divider"})
 
-        append_section(slack_message, f"For full list see here: <https://nationalarchives.github.io/tdr-scripts/output.html|Click for the report>")
+        append_section(slack_message,
+                       f"For full list see here: <https://nationalarchives.github.io/tdr-scripts/output.html|Click for the report>")
         if "SLACK_URL" in os.environ:
             requests.post(os.environ["SLACK_URL"], json=slack_message)
         else:
             print(json.dumps(slack_message))
 
 
+def update_environment(environment):
+    out_of_date_releases = [release for release in releases if
+                            release[environment]["out_of_date"]]
+    for release in out_of_date_releases:
+        repository = release["repository"]
+        workflows = requests.get(url(repository, "actions/workflows"), headers=headers).json()
+        filtered_workflows = [workflow for workflow in workflows["workflows"] if
+                              workflow["path"] == ".github/workflows/deploy.yml"]
+        if len(filtered_workflows) > 0:
+            workflow_id = filtered_workflows[0]["id"]
+            version = release["integration"]["version"]
+            inputs = {"environment": environment, "to-deploy": version}
+            deployment_data = json.dumps({"ref": release["default_branch"], "inputs": inputs})
+            requests.post(url(repository, f"actions/workflows/{workflow_id}/dispatches"),
+                          headers=headers,
+                          data=deployment_data)
+            time.sleep(10)
+            run_response = requests.get(url(repository, "actions/runs?status=waiting"), headers=headers).json()
+            if len(run_response["workflow_runs"]) > 0:
+                run_id = run_response["workflow_runs"][0]["id"]
+                environment_id = requests.get(url(repository, f"environments/{environment}"), headers=headers).json()[
+                    "id"]
+                pending_data = json.dumps({"environment_ids": [environment_id], "state": "approved", "comment": ""})
+                res = requests.post(url(repository, f"actions/runs/{run_id}/pending_deployments"), headers=headers,
+                                    data=pending_data)
+                if res.status_code != 200:
+                    print(repository + " update failed")
+                else:
+                    print(repository + " update successful")
+            else:
+                print(f"No workflow runs found for {repository}")
+
+
+create_releases()
+update_environment("staging")
 create_html_summary()
-send_slack_message()
+# send_slack_message()
