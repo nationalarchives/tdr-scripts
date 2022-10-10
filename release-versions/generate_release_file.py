@@ -40,9 +40,9 @@ def get_versions(repository_name):
         return {
             "repository": repository_name,
             "default_branch": default_branch,
-            "integration": integration_view_model(intg_branch, max_version),
+            "intg": integration_view_model(intg_branch, max_version),
             "staging": higher_environment_branch_view_model(staging_branch, intg_branch, max_version),
-            "production": higher_environment_branch_view_model(prod_branch, staging_branch, max_version),
+            "prod": higher_environment_branch_view_model(prod_branch, staging_branch, max_version),
         }
 
 
@@ -176,9 +176,9 @@ def send_slack_message():
 
         for out_of_date_release in first_three_out_of_date_releases:
             append_header(slack_message, out_of_date_release["repository"])
-            add_stage_info(slack_message, out_of_date_release, "integration")
+            add_stage_info(slack_message, out_of_date_release, "intg")
             add_stage_info(slack_message, out_of_date_release, "staging")
-            add_stage_info(slack_message, out_of_date_release, "production")
+            add_stage_info(slack_message, out_of_date_release, "prod")
             slack_message["blocks"].append({"type": "divider"})
 
         if len(out_of_date_releases) > 3:
@@ -195,7 +195,8 @@ def send_slack_message():
 
 def update_environment(environment):
     out_of_date_releases = [release for release in releases if
-                            release[environment]["out_of_date"]]
+                            release[environment]["out_of_date"]
+                            and release["repository"] != "tdr-auth-server"]
     for release in out_of_date_releases:
         repository = release["repository"]
         workflows = requests.get(url(repository, "actions/workflows"), headers=headers).json()
@@ -203,7 +204,7 @@ def update_environment(environment):
                               workflow["path"] == ".github/workflows/deploy.yml"]
         if len(filtered_workflows) > 0:
             workflow_id = filtered_workflows[0]["id"]
-            version = release["integration"]["version"]
+            version = release["intg"]["version"]
             inputs = {"environment": environment, "to-deploy": version}
             deployment_data = json.dumps({"ref": release["default_branch"], "inputs": inputs})
             requests.post(url(repository, f"actions/workflows/{workflow_id}/dispatches"),

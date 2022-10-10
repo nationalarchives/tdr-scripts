@@ -14,9 +14,9 @@
   #for @release in @releases:
     <tr>
         <td>@release.repository</td>
-        <td class="@release.integration.data_class">@release.integration.version</td>
+        <td class="@release.intg.data_class">@release.intg.version</td>
         <td class="@release.staging.data_class">@release.staging.version @release.staging.date_diff</td>
-        <td class="@release.production.data_class">@release.production.version @release.production.date_diff</td>
+        <td class="@release.prod.data_class">@release.prod.version @release.prod.date_diff</td>
     </tr>
   #end
   </tbody>
