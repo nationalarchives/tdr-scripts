@@ -7,7 +7,6 @@ Terraform scripts are put into separate directories inside the terraform directo
 This is a terraform script to create a bastion host.
 There are three variables which can be set which control what the bastion can connect to.
 * connect_to_database - Postgres client is installed and a file is created at /home/ssm-user/connect.sh. Running this script will connect you to the database in read only mode. 
-* connect_to_backend_checks_efs - The backend checks efs volume is mounted in read only mode in /home/ssm-user/efs/backend-checks
 * connect_to_export_efs - The export efs volume is mounted in read only mode in /home/ssm-user/efs/export
 The `terraform/bastion` directory contains a Jenkinsfile for creating the bastion instance through Jenkins. The [Jenkins job][bastion-jenkins-job] has boolean options for each of the above variables.
 

@@ -122,16 +122,6 @@ resource "aws_security_group_rule" "allow_access_to_database" {
   type                     = "ingress"
 }
 
-resource "aws_security_group_rule" "allow_access_to_backend_checks_efs" {
-  count                    = local.backend_checks_efs_count
-  from_port                = 2049
-  protocol                 = "tcp"
-  security_group_id        = data.aws_security_group.efs_backend_checks_security_group.id
-  source_security_group_id = module.bastion_ec2_security_group.security_group_id
-  to_port                  = 2049
-  type                     = "ingress"
-}
-
 resource "aws_security_group_rule" "allow_access_to_export_efs" {
   count                    = local.export_efs_count
   from_port                = 2049
