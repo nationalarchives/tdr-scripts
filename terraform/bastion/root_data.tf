@@ -56,10 +56,6 @@ data "aws_security_group" "db_security_group" {
   name = "tdr-consignment-api-database-instance-${local.environment}"
 }
 
-data "aws_security_group" "efs_backend_checks_security_group" {
-  name = "backend-checks-efs-mount-target-security-group"
-}
-
 data "aws_security_group" "efs_export_security_group" {
   name = "export-efs-mount-target-security-group"
 }
