@@ -23,10 +23,6 @@ variable "connect_to_database" {
   default = false
 }
 
-variable "connect_to_backend_checks_efs" {
-  default = false
-}
-
 variable "connect_to_export_efs" {
   default = false
 }

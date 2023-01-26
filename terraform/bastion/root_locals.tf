@@ -10,7 +10,6 @@ locals {
       "CostCentre"      = data.aws_ssm_parameter.cost_centre.value
     }
   )
-  backend_checks_efs_count = var.connect_to_backend_checks_efs == "true" ? 1 : 0
-  export_efs_count         = var.connect_to_export_efs == "true" ? 1 : 0
-  database_count           = var.connect_to_database == "true" ? 1 : 0
+  export_efs_count = var.connect_to_export_efs == "true" ? 1 : 0
+  database_count   = var.connect_to_database == "true" ? 1 : 0
 }
