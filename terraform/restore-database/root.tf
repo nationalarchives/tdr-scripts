@@ -1,3 +1,7 @@
+module "global_parameters" {
+  source = "./tdr-configurations/terraform"
+}
+
 resource "aws_ssm_parameter" "database_url" {
   name      = "/${local.environment}/${local.db_name}/database/url"
   type      = "SecureString"

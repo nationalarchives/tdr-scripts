@@ -4,3 +4,9 @@
 [submodule "terraform/restore-database/tdr-terraform-modules"]
 	path = terraform/restore-database/tdr-terraform-modules
 	url = https://github.com/nationalarchives/tdr-terraform-modules.git
+[submodule "terraform/bastion/tdr-configurations"]
+	path = terraform/bastion/tdr-configurations
+	url = https://github.com/nationalarchives/tdr-configurations.git
+[submodule "terraform/restore-database/tdr-configurations"]
+	path = terraform/restore-database/tdr-configurations
+	url = https://github.com/nationalarchives/tdr-configurations.git
