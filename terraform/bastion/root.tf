@@ -1,3 +1,7 @@
+module "global_parameters" {
+  source = "./tdr-configurations/terraform"
+}
+
 module "encryption_key" {
   source      = "./tdr-terraform-modules/kms"
   project     = var.project
