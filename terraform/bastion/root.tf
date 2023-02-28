@@ -83,15 +83,14 @@ module "bastion_ec2_instance" {
   common_tags = local.common_tags
   environment = local.environment
   name        = "bastion"
-  user_data   = "user_data_bastion"
-  user_data_variables = {
+  user_data = templatefile("./templates/user_data_bastion.sh.tpl", {
     db_host               = split(":", data.aws_db_instance.consignment_api.endpoint)[0],
     account_number        = data.aws_caller_identity.current.account_id,
     environment           = title(local.environment),
     export_file_system_id = data.aws_efs_file_system.export_file_system.id,
     connect_to_export_efs = var.connect_to_export_efs,
     connect_to_database   = var.connect_to_database
-  }
+  })
   ami_id            = module.bastion_ami.encrypted_ami_id
   security_group_id = module.bastion_ec2_security_group.security_group_id
   subnet_id         = data.aws_subnet.private_subnet.id
