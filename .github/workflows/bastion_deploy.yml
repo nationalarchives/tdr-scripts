@@ -42,7 +42,7 @@ jobs:
         run: | 
           import os
           with open(os.environ['GITHUB_OUTPUT'], 'a') as fh: 
-            print(f'title-environment={'${{ github.event.inputs.environment }}'.title()}', file=fh)
+            print(f'title-environment={"${{ github.event.inputs.environment }}".title()}', file=fh)
         shell: python
       - uses: nationalarchives/tdr-github-actions/.github/actions/run-git-secrets@main
       - id: configure-aws-credentials
