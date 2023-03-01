@@ -19,9 +19,11 @@ jobs:
           token: ${{ secrets.WORKFLOW_PAT }}
       - id: set-environment-names
         run: |
+          import os
           env = "${{ matrix.environment }}"
-          run: print(f"::set-output name=title-environment::{env.title()}")
-          print(f"::set-output name=account-number-secret::{env.upper()}_ACCOUNT_NUMBER")
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f"title-environment={env.title()}", file=fh)
+            print(f"account-number-secret={env.upper()}_ACCOUNT_NUMBER", file=fh)
         shell: python
       - id: configure-aws-credentials
         uses: aws-actions/configure-aws-credentials@v1
