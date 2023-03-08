@@ -2,7 +2,7 @@
 %{ if connect_to_database == "true" }
 mkdir -p /home/ssm-user
 amazon-linux-extras install -y postgresql14
-yum install jq
+yum install -y jq
 cat <<\EOF >> /home/ssm-user/connect.sh
 FILE=/home/ssm-user/rds-combined-ca-bundle.pem
 if [ ! -f "$FILE" ]; then
