@@ -3,9 +3,14 @@ on:
   workflow_dispatch:
     inputs:
       environment:
+        type: choice
+        description: 'The stage to deploy the bastion to'
         required: true
-        description: The stage to deploy the bastion to
-        type: string
+        options:
+          - intg
+          - staging
+          - prod
+        default: 'intg'
       command:
         required: true
         description: Whether to apply or destroy the bastion
