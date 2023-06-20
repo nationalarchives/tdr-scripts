@@ -1,6 +1,6 @@
 # Run an ECR repository in the Sandbox
 
-**Important Note**: ecr-sandbox uses v1.1.3 of Terraform. Ensure that Terraform v1.1.3 is installed before proceeding.
+**Important Note**: ecr-sandbox uses v1.5.0 of Terraform. Ensure that Terraform v1.5.0 is installed before proceeding.
 
 This creates a container registry that can be used to test image scanning
 without spamming the Slack channel and email address that receive image scan
