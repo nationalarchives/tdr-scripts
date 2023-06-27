@@ -1,6 +1,6 @@
 # Run a Keycloak instance in the sandbox
 
-**Important Note**: keycloak-sandbox uses v1.1.3 of Terraform. Ensure that Terraform v1.1.3 is installed before proceeding.
+**Important Note**: keycloak-sandbox uses v1.5.0 of Terraform. Ensure that Terraform v1.5.0 is installed before proceeding.
 
 This Terraform script lets you create a Keycloak instance in the Sandbox
 account. This instance does not have all of the security controls that the

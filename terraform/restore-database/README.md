@@ -15,7 +15,7 @@ Set a helper variable as some fields need `consignmentapi` and some need `consig
 
 ## Run terraform
 
-**Important Note**: restore-database uses v1.1.3 of Terraform. Ensure that Terraform v1.1.3 is installed before proceeding.
+**Important Note**: restore-database uses v1.5.0 of Terraform. Ensure that Terraform v1.5.0 is installed before proceeding.
 
 ```
 export TF_VAR_tdr_account_number=xxxxxxxxxxx
