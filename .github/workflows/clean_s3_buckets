@@ -1,0 +1,36 @@
+name: Clean S3 Buckets
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        type: choice
+        description: 'Environment'
+        required: true
+        options:
+          - intg
+          - staging
+        default: 'intg'
+permissions:
+  id-token: write
+jobs:
+  run-lambda:
+    environment: ${{ github.event.inputs.environment }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - id: role-name
+        run: |
+          import os
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as fh:
+            print(f"role-name=TDRGithubActionsDeployLambda{'${{ github.event.inputs.environment }}'.title()}", file=fh)
+        shell: python
+      - name: Configure AWS credentials for Lambda
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/${{ steps.role-name.outputs.role-name }}
+          aws-region: eu-west-2
+          role-session-name: ECRLogin
+      - name: Empty S3 buckets
+        run: aws s3 rm s3://tdr-consignment-export-${{ steps.role-name.outputs.role-name }} --recursive
+
