@@ -30,7 +30,7 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/${{ steps.role-name.outputs.role-name }}
           aws-region: eu-west-2
-          role-session-name: ECRLogin
+          role-session-name: CleanS3Buckets
       - name: Empty S3 buckets
         run: aws s3 rm s3://tdr-consignment-export-${{ steps.role-name.outputs.role-name }} --recursive
 
