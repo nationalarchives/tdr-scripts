@@ -1,3 +1,5 @@
+import sys
+
 from quik import FileLoader
 from collections import ChainMap
 import requests
@@ -137,11 +139,11 @@ def add_stage_info(message, release, stage):
     append_section(message, f"{release[stage]['version']} {stage.title()} version {release[stage]['date_diff']}")
 
 
-def create_html_summary():
+def create_html_summary(team_name):
     loader = FileLoader(".")
     template = loader.load_template('index.html')
     repos = requests.get(
-        "https://api.github.com/orgs/nationalarchives/teams/transfer-digital-records/repos?per_page=100",
+        f"https://api.github.com/orgs/nationalarchives/teams/{team_name}/repos?per_page=100",
         headers=headers).json()
     filtered_repos = sorted([repo["name"] for repo in repos if not repo["archived"] and not repo["disabled"]])
 
@@ -149,16 +151,18 @@ def create_html_summary():
         versions = get_versions(repo)
         if versions is not None:
             releases.append(versions)
-    with open("output.html", "w") as output:
+    if not os.path.exists(team_name):
+        os.mkdir(team_name)
+    with open(f"{team_name}/output.html", "w") as output:
         output.write(template.render({'releases': releases}, loader=loader))
 
 
-def send_slack_message():
+def send_slack_message(team_name):
     out_of_date_releases = [release for release in releases if
                             release["staging"]["out_of_date"] or release["production"]["out_of_date"]]
 
     if len(out_of_date_releases) > 0:
-        #show first three only to ensure Slack message is not too large so it fails to send
+        # show first three only to ensure Slack message is not too large so it fails to send
         first_three_out_of_date_releases = out_of_date_releases[:3]
         slack_message = {"blocks": []}
 
@@ -176,12 +180,14 @@ def send_slack_message():
             append_section(slack_message, "... further repositories are out of date ...")
             slack_message["blocks"].append({"type": "divider"})
 
-        append_section(slack_message, f"For full list see here: <https://nationalarchives.github.io/tdr-scripts/output.html|Click for the report>")
+        append_section(slack_message,
+                       f"For full list see here: <https://nationalarchives.github.io/tdr-scripts/{team_name}/output.html|Click for the report>")
         if "SLACK_URL" in os.environ:
             requests.post(os.environ["SLACK_URL"], json=slack_message)
         else:
             print(json.dumps(slack_message))
 
 
-create_html_summary()
-send_slack_message()
+team_name = sys.argv[1]
+create_html_summary(team_name)
+send_slack_message(team_name)

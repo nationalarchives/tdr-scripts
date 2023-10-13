@@ -5,6 +5,12 @@ on:
     - cron: '30 11 * * *'
 jobs:
   generate:
+    strategy:
+      matrix:
+        teams: [
+          {team: "transfer-digital-records", slack_secret_name: "SLACK_WEBHOOK"},
+          {team: "digital-records-repository", slack_secret_name: "DR2_SLACK_WEBHOOK"}
+        ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,11 +27,11 @@ jobs:
             git config --global user.name tna-digital-archiving-jenkins
             cd release-versions
             pip install -r requirements.txt
-            python generate_release_file.py
+            python generate_release_file.py ${{ matrix.teams.team }}
             cd ..
         env:
           GITHUB_API_TOKEN: ${{ secrets.WORKFLOW_PAT }}
-          SLACK_URL: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_URL: ${{ secrets[matrix.teams.slack_secret_name] }}
       - uses: actions/checkout@v3
         with:
           ref: scripts-pages
@@ -33,7 +39,8 @@ jobs:
           path: scripts-pages
       - run: |
             cd scripts-pages 
-            cp ../release-versions/output.html docs/
+            mkdir -p docs/${{ matrix.teams.team }}
+            cp ../release-versions/${{ matrix.teams.team }}/output.html docs/${{ matrix.teams.team }}/
             git add docs
             git commit -m "Add release versions"
             git push
