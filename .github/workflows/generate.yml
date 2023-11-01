@@ -8,8 +8,7 @@ jobs:
     strategy:
       matrix:
         teams: [
-          {team: "transfer-digital-records", slack_secret_name: "SLACK_WEBHOOK"},
-          {team: "digital-records-repository", slack_secret_name: "DR2_SLACK_WEBHOOK"}
+          {team: "transfer-digital-records", slack_secret_name: "SLACK_WEBHOOK"}
         ]
     runs-on: ubuntu-latest
     steps:
