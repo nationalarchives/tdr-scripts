@@ -42,5 +42,5 @@ jobs:
             mkdir -p docs/${{ matrix.teams.team }}
             cp ../release-versions/${{ matrix.teams.team }}/output.html docs/${{ matrix.teams.team }}/
             git add docs
-            git commit -m "Add release versions"
+            git commit -m "Add release versions" || true
             git push
