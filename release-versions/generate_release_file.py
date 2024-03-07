@@ -5,6 +5,8 @@ import os
 from datetime import datetime
 import json
 import time
+import semver
+from semver import VersionInfo
 
 releases = []
 
@@ -34,16 +36,19 @@ def get_versions(repository_name):
         staging_branch = release_branch(repository_name, "staging", filtered_release_branches, tags)
         prod_branch = release_branch(repository_name, "prod", filtered_release_branches, tags)
 
-        defined_versions = [branch["version"] for branch in [intg_branch, staging_branch, prod_branch] if branch]
-        max_version = max(defined_versions)
-
-        return {
-            "repository": repository_name,
-            "default_branch": default_branch,
-            "intg": integration_view_model(intg_branch, max_version),
-            "staging": higher_environment_branch_view_model(staging_branch, intg_branch, max_version),
-            "prod": higher_environment_branch_view_model(prod_branch, staging_branch, max_version),
-        }
+        defined_versions = [branch["version"].replace("v", "") for branch in [intg_branch, staging_branch, prod_branch]
+                            if branch and branch["version"] != '']
+        try:
+            max_version = max(defined_versions, key=VersionInfo.parse)
+            return {
+                "repository": repository_name,
+                "default_branch": default_branch,
+                "intg": integration_view_model(intg_branch, max_version),
+                "staging": higher_environment_branch_view_model(staging_branch, intg_branch, max_version),
+                "prod": higher_environment_branch_view_model(prod_branch, staging_branch, max_version),
+            }
+        except ValueError:
+            return None
 
 
 def release_branch(repo_name, environment, filtered_release_branches, repo_tags):
@@ -78,8 +83,8 @@ def get_version_for_stage(tags, release_sha):
 
 
 def integration_view_model(branch, max_version):
-    if branch:
-        is_out_of_date = branch["version"] != max_version
+    if branch and branch["version"] != "":
+        is_out_of_date = semver.compare(branch["version"].replace("v", ""), max_version) == -1
         return branch_view_model(is_out_of_date, branch["version"], "")
     else:
         return empty_branch_view_model()
@@ -87,7 +92,7 @@ def integration_view_model(branch, max_version):
 
 def higher_environment_branch_view_model(branch, lower_environment_branch, max_version):
     if branch:
-        is_out_of_date = branch["version"] != max_version if branch else True
+        is_out_of_date = semver.compare(branch["version"].replace("v", ""), max_version) == -1 if branch else True
 
         if lower_environment_branch:
             difference_days = (lower_environment_branch["date"] - branch["date"]).days
@@ -143,7 +148,7 @@ def add_stage_info(message, release, stage):
 
 def create_releases():
     repos = requests.get(
-        "https://api.github.com/orgs/nationalarchives/teams/transfer-digital-records/repos?per_page=100",
+        "https://api.github.com/orgs/nationalarchives/teams/digital-records-repository/repos?per_page=100",
         headers=headers).json()
     filtered_repos = sorted([repo["name"] for repo in repos if
                              not repo["archived"] and not repo["disabled"]])
@@ -228,6 +233,6 @@ def update_environment(environment):
 
 
 create_releases()
-update_environment("staging")
+# update_environment("prod")
 create_html_summary()
 # send_slack_message()
