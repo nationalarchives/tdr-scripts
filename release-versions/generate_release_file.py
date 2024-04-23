@@ -9,6 +9,8 @@ import json
 
 releases = []
 
+ignored_repositories = ["dr2-court-document-package-anonymiser"]
+
 headers = {'Content-Type': 'application/json',
            'Authorization': f'Bearer {os.environ["GITHUB_API_TOKEN"]}'}
 
@@ -145,7 +147,7 @@ def create_html_summary(team_name):
     repos = requests.get(
         f"https://api.github.com/orgs/nationalarchives/teams/{team_name}/repos?per_page=100",
         headers=headers).json()
-    filtered_repos = sorted([repo["name"] for repo in repos if not repo["archived"] and not repo["disabled"]])
+    filtered_repos = sorted([repo["name"] for repo in repos if not repo["archived"] and not repo["disabled"] and repo["name"] not in ignored_repositories])
 
     for repo in filtered_repos:
         versions = get_versions(repo)
