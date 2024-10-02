@@ -23,8 +23,8 @@ jobs:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           passphrase: ${{ secrets.GPG_PASSPHRASE }}
       - run: |
-            git config --global user.email digitalpreservation@nationalarchives.gov.uk
-            git config --global user.name tna-digital-archiving-jenkins
+            git config --global user.email s-GitHubDABot@nationalarchives.gov.uk
+            git config --global user.name tna-da-bot
             cd release-versions
             pip install -r requirements.txt
             python generate_release_file.py ${{ matrix.teams.team }}
