@@ -84,6 +84,7 @@ jobs:
           TF_VAR_connect_to_export_efs: ${{ github.event.inputs.connect-to-export-efs }}
         run: |
           cd terraform/bastion
+          terraform --version
           terraform init
           terraform workspace new ${{ github.event.inputs.environment }} || true
           terraform workspace select ${{ github.event.inputs.environment }}
