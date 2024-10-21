@@ -23,7 +23,7 @@ resource "aws_db_instance" "restore_db_instance" {
   }
   instance_class                      = "db.t3.medium"
   db_subnet_group_name                = data.aws_db_subnet_group.subnet_group.name
-  db_name                             = local.db_name
+  db_name                             = var.restore_time == "" ? local.db_name : null
   final_snapshot_identifier           = "restored-${var.database}-final-snapshot-${random_string.identifier.result}-${local.environment}"
   iam_database_authentication_enabled = true
   vpc_security_group_ids              = [data.aws_security_group.db_security_group.id]

@@ -21,7 +21,7 @@ Set a helper variable as some fields need `consignmentapi` and some need `consig
 export TF_VAR_tdr_account_number=xxxxxxxxxxx
 export TF_VAR_instance_identifier=$(aws rds describe-db-instances --query="DBInstances[?DBName=='$DB_NO_DASH'].DBInstanceIdentifier" --output text)
 export TF_VAR_engine_version=$(aws rds describe-db-instances --query="DBInstances[?DBName=='$DB_NO_DASH'].EngineVersion" --output text)
-export TF_VAR_restore_time=YYYY-MM-DD-HH-MM # optional if want to restore DB to a point in time instead of latest possible version
+export TF_VAR_restore_time=YYYY-MM-DDThh:mm:ssZ # optional if want to restore DB to a point in time instead of latest possible version. UTC format: https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#restore_time
 export PROFILE=intg # replace with staging or prod if using those environments
 
 terraform init
