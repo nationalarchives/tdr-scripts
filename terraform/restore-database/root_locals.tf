@@ -5,7 +5,8 @@ locals {
   attach_new_policy_count = var.database == "consignment-api" ? 1 : 0
   aws_region              = "eu-west-2"
   assume_role             = "arn:aws:iam::${var.tdr_account_number}:role/TDRRestoreDbTerraformRole${title(local.environment)}"
-  subnet_group_name       = var.database == "keycloak" ? "main-${local.environment}" : "tdr-${local.environment}"
+  ecs_task_role           = local.db_name == "keycloak" ? "KeycloakECSTaskRole${local.environment}" : "${local.db_name}_ecs_task_role_${local.environment}"
+  subnet_group_name       = "${var.database}-instance-main-${local.environment}"
   common_tags = tomap(
     {
       "Environment"     = local.environment,
