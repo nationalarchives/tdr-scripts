@@ -12,6 +12,6 @@ variable "instance_identifier" {
   description = "The instance identifier. See the README for how to find this"
 }
 
-variable "engine_version" {
-  description = "The version of the new cluster. See the README for how to find this"
+variable "instance_availability_zone" {
+  description = "Availability zone of the instance being restored. Either 'eu-west-2a' or 'eu-west-2b'"
 }
