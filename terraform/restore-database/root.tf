@@ -3,9 +3,9 @@ module "global_parameters" {
 }
 
 resource "aws_ssm_parameter" "database_url" {
-  name      = "/${local.environment}/${local.db_name}/database/url"
-  type      = "SecureString"
-  value     = aws_db_instance.restore_db_instance.endpoint
+  name  = "/${local.environment}/${local.db_name}/database/url"
+  type  = "SecureString"
+  value = aws_db_instance.restore_db_instance.endpoint
 }
 
 resource "random_string" "identifier" {
