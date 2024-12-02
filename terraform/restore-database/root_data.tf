@@ -3,7 +3,7 @@ data "aws_ssm_parameter" "cost_centre" {
 }
 
 data "aws_security_group" "db_security_group" {
-  name = local.db_name == "consignmentapi" ? "tdr-consignment-api-database-instance-${local.environment}" : "${local.db_name}-database-security-group-${local.environment}"
+  name = local.db_name == "consignmentapi" ? "tdr-consignment-api-database-instance-${local.environment}" : "${local.db_name}-database-security-group-new-${local.environment}"
 }
 
 data "aws_db_subnet_group" "subnet_group" {
@@ -11,5 +11,5 @@ data "aws_db_subnet_group" "subnet_group" {
 }
 
 data "aws_iam_role" "task_role" {
-  name = "${local.db_name}_ecs_task_role_${local.environment}"
+  name = local.ecs_task_role
 }
