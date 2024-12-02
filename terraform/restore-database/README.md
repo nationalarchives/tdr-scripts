@@ -21,7 +21,7 @@ Any changes that affect the production database should be made by two people, ei
 
 ## Run terraform
 
-**Important Note**: restore-database uses v1.5.0 of Terraform. Ensure that Terraform v1.5.0 is installed before proceeding.
+**Important Note**: restore-database uses v1.9.8 of Terraform. Ensure that Terraform v1.9.8 is installed before proceeding.
 
 1. Set the relevant environment variables:
    * `export TF_VAR_database=consignment-api` or `export TF_VAR_database=keycloak`
