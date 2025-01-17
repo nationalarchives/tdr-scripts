@@ -21,10 +21,10 @@ Any changes that affect the production database should be made by two people, ei
 
 ## Run terraform
 
-**Important Note**: restore-database uses v1.9.8 of Terraform. Ensure that Terraform v1.9.8 is installed before proceeding.
+**Important Note**: restore-database uses v1.9.8 of Terraform. Ensure that Terraform v1.9.8 is installed before proceeding. Also ensure you have valid aws credentials. You should use intg,staging or prod account credentials.
 
 1. Set the relevant environment variables:
-   * `export TF_VAR_database=consignment-api` or `export TF_VAR_database=keycloak`
+   * `export TF_VAR_database=consignmentapi` or `export TF_VAR_database=keycloak`
    * `export DB_NO_DASH=$(echo $TF_VAR_database | sed  's/-//g')` (helper variable as some fields need `consignmentapi` and some need `consignment-api)
    * `export TF_VAR_tdr_account_number=xxxxxxxxxxx`
    * `export TF_VAR_instance_identifier=$(aws rds describe-db-instances --query="DBInstances[?DBName=='$DB_NO_DASH'].DBInstanceIdentifier" --output text)`
@@ -33,6 +33,7 @@ Any changes that affect the production database should be made by two people, ei
    * `export TF_VAR_availability_zone=eu-west-2a` (this should match the availability zone of the instance being restored)
    * `export PROFILE=intg` (replace with staging or prod if using those environments)
 2. Run the Terraform
+   * Update your AWS credentials with Management credentials
    * Terraform `plan` should be run first to ensure the restore DB has the correct setting / naming
    ```
    terraform init
@@ -42,11 +43,23 @@ Any changes that affect the production database should be made by two people, ei
 
 The restore may take 10-15 minutes depending on the size of the database when you run this. Terraform won't exit until the instance is created.
 
+## Update Policies to point to new database 
+
+The `consignmentapi_ecs_task_role_{env}` or `KeycloakECSTaskRole{env}` role will have a new policy attached called `RestoredDbAccessPolicy{env}`.
+* copy the resource ARN of the `RestoredDbAccessPolicyIntg` and overwrite the resource ARN of the `TDRConsignmentApiAllowIAMAuthPolicy{env}` or `KeycloakECSTaskPolicy{env}`
+
+## Update SSM parameters to point to new database
+There will be a new entry in SSM parameter store called `/{env}/consignmentapi/database/url`
+* Copy the value from `/{env}/{database}/database/url` and overwrite the ssm parameter for `/intg/{database}/instance/url` with that value
+
 ## Restart the ECS service to pick up the new database
 
 ```
 aws ecs update-service --service $DB_NO_DASH_service_$PROFILE --cluster $DB_NO_DASH_$PROFILE --force-new-deployment
 ```
+
+Alternatively you can do this manually via the AWS console by navigating to Amazon Elastic Container Service > Clusters > {ECS_Service}_
+{env} > Services and then clicking update > force new deployment. 
 
 ## Revert Keycloak Secrets If Required
 
@@ -64,3 +77,8 @@ Update the Terraform environments state to match with the restored DB instance
 5. Run Terraform apply. This will cause the DB instance to rename which will mean the Terraform apply will eventually error
 6. Run Terraform apply again and the Terraform should fully apply as it will pick up the newly renamed restore DB instance
 7. Run Terraform apply again to ensure the state is stable, ie there are no longer changes appearing for the restore DB instance
+
+## Cleanup SSM Parameter store and policies
+Once the system is up and running with the new database snapshot, the newly created ssm parameter and policies will need to be deleted.
+* Delete the `RestoredDbAccessPolicyIntg` policy
+* Delete the `/{env}/{database}/database/url` ssm parameter
