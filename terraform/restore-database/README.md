@@ -31,7 +31,7 @@ Any changes that affect the production database should be made by two people, ei
    * `export TF_VAR_instance_identifier=$(aws rds describe-db-instances --query="DBInstances[?DBName=='$DB_NO_DASH'].DBInstanceIdentifier" --output text)`
    * `export TF_VAR_engine_version=$(aws rds describe-db-instances --query="DBInstances[?DBName=='$DB_NO_DASH'].EngineVersion" --output text)`
    * `export TF_VAR_restore_time=YYYY-MM-DDThh:mm:ssZ` (optional if need to restore DB to a point in time instead of latest possible version. UTC format see further details here: [restore_time](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#restore_time))
-   * `export TF_VAR_availability_zone=eu-west-2a` (this should match the availability zone of the instance being restored)
+   * `export TF_VAR_instance_availability_zone=eu-west-2a` (this should match the availability zone of the instance being restored)
    * `export PROFILE=intg` (replace with staging or prod if using those environments)
 2. Run the Terraform
    * Update your AWS credentials with TDR Management account credentials
