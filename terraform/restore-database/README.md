@@ -24,6 +24,7 @@ Any changes that affect the production database should be made by two people, ei
 **Important Note**: restore-database uses v1.9.8 of Terraform. Ensure that Terraform v1.9.8 is installed before proceeding. Also ensure you have valid aws credentials. You should use intg,staging or prod account credentials.
 
 1. Set the relevant environment variables:
+   * Update your AWS credentials with credentials for the TDR environment you are restoring the DB in.
    * `export TF_VAR_database=consignmentapi` or `export TF_VAR_database=keycloak`
    * `export DB_NO_DASH=$(echo $TF_VAR_database | sed  's/-//g')` (helper variable as some fields need `consignmentapi` and some need `consignment-api)
    * `export TF_VAR_tdr_account_number=xxxxxxxxxxx`
@@ -33,7 +34,7 @@ Any changes that affect the production database should be made by two people, ei
    * `export TF_VAR_availability_zone=eu-west-2a` (this should match the availability zone of the instance being restored)
    * `export PROFILE=intg` (replace with staging or prod if using those environments)
 2. Run the Terraform
-   * Update your AWS credentials with Management credentials
+   * Update your AWS credentials with TDR Management account credentials
    * Terraform `plan` should be run first to ensure the restore DB has the correct setting / naming
    ```
    terraform init
@@ -69,16 +70,23 @@ To resolve this copy the current client secret keys from Keycloak to the relevan
 
 ## Update the Terraform state to match restored DB instance
 
-Update the Terraform environments state to match with the restored DB instance
-1. Remove old DB instance from Terraform state: `terraform rm module.{database module name}.aws_db_instance.db_instance`
-2. Import the restored DB instance into the Terraform state: `terraform import module.{database module name}.aws_db_instance.db_instance {DB instance id}`
-3. Remove old random identifier from Terraform state: `terraform rm module.{database module name}.random_string.identifier_string`
-4. Import the new random identifier into the Terraform state: `terraform import module.{database module name}.aws_db_instance.db_instance {random identifier id}`
-5. Run Terraform apply. This will cause the DB instance to rename which will mean the Terraform apply will eventually error
-6. Run Terraform apply again and the Terraform should fully apply as it will pick up the newly renamed restore DB instance
-7. Run Terraform apply again to ensure the state is stable, ie there are no longer changes appearing for the restore DB instance
+**Note**: Before making Terraform state changes take a backup copy of the existing TDR environment state from the AWS S3 state bucket.
+
+Update the Terraform environments state to match with the restored DB instance.
+
+In your local `tdr-terraform-environments` repo:
+1. Update your AWS credentials with TDR Management account credentials
+2. Remove old DB instance from Terraform state: `terraform state rm module.{database module name}.aws_db_instance.db_instance`
+3. Import the restored DB instance into the Terraform state: `terraform import module.{database module name}.aws_db_instance.db_instance { restored DB instance id}`
+4. Remove old random identifier from Terraform state: `terraform state rm module.{database module name}.random_string.identifier_string`
+5. Import the new random identifier into the Terraform state: `terraform import module.consignment_api_database.random_string.identifier_string { restored random identifier id - this can be found in the local Terraform state file created when applying the restore Terraform }`
+6. Run Terraform apply. This will cause the DB instance to rename.
+7. Run Terraform apply again and the Terraform should fully apply as it will pick up the newly renamed restored DB instance
+8. Run Terraform apply again to ensure the state is stable, ie there are no longer changes appearing for the restored DB instance
+9. Restart the ECS task  again so it picks up the new stable DB instance.
 
 ## Cleanup SSM Parameter store and policies
-Once the system is up and running with the new database snapshot, the newly created ssm parameter and policies will need to be deleted.
+Once the system is up and running with the new database snapshot, the temporarily created ssm parameter and policies will need to be deleted.
 * Delete the `RestoredDbAccessPolicyIntg` policy
 * Delete the `/{env}/{database}/database/url` ssm parameter
+* If relevant delete the old version of the DB
