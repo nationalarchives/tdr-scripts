@@ -79,7 +79,7 @@ In your local `tdr-terraform-environments` repo:
 2. Remove old DB instance from Terraform state: `terraform state rm module.{database module name}.aws_db_instance.db_instance`
 3. Import the restored DB instance into the Terraform state: `terraform import module.{database module name}.aws_db_instance.db_instance { restored DB instance id}`
 4. Remove old random identifier from Terraform state: `terraform state rm module.{database module name}.random_string.identifier_string`
-5. Import the new random identifier into the Terraform state: `terraform import module.consignment_api_database.random_string.identifier_string { restored random identifier id - this can be found in the local Terraform state file created when applying the restore Terraform }`
+5. Import the new random identifier into the Terraform state: `terraform import module.{database module name}.random_string.identifier_string { restored random identifier id - this can be found in the local Terraform state file created when applying the restore Terraform }`
 6. Run Terraform apply. This will cause the DB instance to rename.
 7. Run Terraform apply again and the Terraform should fully apply as it will pick up the newly renamed restored DB instance
 8. Run Terraform apply again to ensure the state is stable, ie there are no longer changes appearing for the restored DB instance
