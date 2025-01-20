@@ -3,14 +3,13 @@ module "global_parameters" {
 }
 
 resource "aws_ssm_parameter" "database_url" {
-  name      = "/${local.environment}/${local.db_name}/database/url"
-  type      = "SecureString"
-  value     = aws_db_instance.restore_db_instance.endpoint
-  overwrite = true
+  name  = "/${local.environment}/${local.db_name}/database/url"
+  type  = "SecureString"
+  value = split(":", aws_db_instance.restore_db_instance.endpoint)[0]
 }
 
 resource "random_string" "identifier" {
-  length  = 4
+  length  = 10
   upper   = false
   special = false
 }
@@ -21,22 +20,22 @@ resource "aws_db_instance" "restore_db_instance" {
     use_latest_restorable_time    = var.restore_time == "" ? true : null
     restore_time                  = var.restore_time == "" ? null : var.restore_time
   }
+  identifier                          = "${var.database}-${random_string.identifier.result}"
   instance_class                      = "db.t3.medium"
   db_subnet_group_name                = data.aws_db_subnet_group.subnet_group.name
-  name                                = local.db_name
+  db_name                             = null
   final_snapshot_identifier           = "restored-${var.database}-final-snapshot-${random_string.identifier.result}-${local.environment}"
   iam_database_authentication_enabled = true
   vpc_security_group_ids              = [data.aws_security_group.db_security_group.id]
+  availability_zone                   = var.instance_availability_zone
 }
 
 resource "aws_iam_policy" "iam_db_authentication_policy" {
-  count  = local.attach_new_policy_count
   policy = templatefile("./tdr-terraform-modules/iam_policy/templates/restored_db_access.json.tpl", { cluster_arn = "arn:aws:rds-db:${local.aws_region}:${var.tdr_account_number}:dbuser:${aws_db_instance.restore_db_instance.resource_id}/${local.user}" })
   name   = "RestoredDbAccessPolicy${title(local.environment)}"
 }
 
 resource "aws_iam_role_policy_attachment" "attach_db_authentication_policy" {
-  count      = local.attach_new_policy_count
-  policy_arn = aws_iam_policy.iam_db_authentication_policy[count.index].arn
+  policy_arn = aws_iam_policy.iam_db_authentication_policy.arn
   role       = data.aws_iam_role.task_role.id
 }
