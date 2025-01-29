@@ -39,6 +39,9 @@ jobs:
   deploy:
     environment: ${{ github.event.inputs.environment }}
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./terraform/bastion
     steps:
       - uses: actions/checkout@v3
       - uses: hashicorp/setup-terraform@v1
@@ -84,7 +87,6 @@ jobs:
           TF_VAR_connect_to_database: ${{ github.event.inputs.connect-to-database }}
           TF_VAR_connect_to_export_efs: ${{ github.event.inputs.connect-to-export-efs }}
         run: |
-          cd terraform/bastion
           terraform --version
           terraform init
           terraform workspace new ${{ github.event.inputs.environment }} || true
