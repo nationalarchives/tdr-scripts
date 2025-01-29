@@ -44,7 +44,6 @@ jobs:
         working-directory: ./terraform/bastion
     steps:
       - uses: actions/checkout@v3
-      - uses: hashicorp/setup-terraform@v1
         with:
           submodules: recursive
           token: ${{ secrets.WORKFLOW_PAT }}
@@ -80,6 +79,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubTerraformAssumeRole${{ steps.set-environment-names.outputs.title-environment }}
           aws-region: eu-west-2
           role-session-name: TerraformRole
+      - uses: hashicorp/setup-terraform@v1
       - name: Run Terraform
         env:
           TF_VAR_tdr_account_number: ${{ secrets.ACCOUNT_NUMBER }}
