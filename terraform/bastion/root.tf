@@ -15,6 +15,11 @@ resource "aws_iam_role" "bastion_db_connect_role" {
   assume_role_policy = templatefile("${path.module}/templates/bastion_access_db_assume_role.json.tpl", { account_id = data.aws_caller_identity.current.account_id, environment = title(local.environment) })
 }
 
+resource "aws_iam_role_policy_attachment" "org_session_manager_logs_policy_attach" {
+  policy_arn = data.aws_iam_policy.org-session-manager-logs.arn
+  role       = data.aws_iam_role.bastion_role.name
+}
+
 resource "aws_iam_policy" "bastion_db_connect_policy" {
   name   = "TDRBastionAccessDbPolicy${title(local.environment)}"
   policy = templatefile("${path.module}/templates/bastion_access_db_policy.json.tpl", { account_id = data.aws_caller_identity.current.account_id, instance_id = data.aws_db_instance.consignment_api.resource_id })
