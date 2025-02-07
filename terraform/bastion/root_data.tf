@@ -59,3 +59,7 @@ data "aws_security_group" "db_security_group" {
 data "aws_security_group" "efs_export_security_group" {
   name = "export-efs-mount-target-security-group"
 }
+
+data "aws_iam_policy" "org-session-manager-logs" {
+  arn = "arn:aws:iam::${var.tdr_account_number}:policy/org-session-manager-logs"
+}
