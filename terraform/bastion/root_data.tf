@@ -16,14 +16,6 @@ data "aws_ssm_parameter" "database_url" {
   name = "/${local.environment}/${var.service}/instance/url"
 }
 
-data "aws_ssm_parameter" "database_username" {
-  name = "/${local.environment}/${var.service}/instance/username"
-}
-
-data "aws_ssm_parameter" "database_password" {
-  name = "/${local.environment}/${var.service}/instance/password"
-}
-
 data "aws_ssm_parameter" "mgmt_account_number" {
   name = "/mgmt/management_account"
 }

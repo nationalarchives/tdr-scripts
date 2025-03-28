@@ -59,9 +59,6 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/TDRGithubActionsRunDocumentRole${{ steps.set-environment-names.outputs.title-environment }}
           aws-region: eu-west-2
           role-session-name: DeleteUserRole
-      - name: Run delete user script
-        if: ${{ steps.configure-aws-credentials.outcome == 'success' }}
-        run: aws ssm send-command --targets Key=tag:Name,Values=bastion-ec2-instance-${{ github.event.inputs.environment }} --document-name deleteuser
       - uses: aws-actions/configure-aws-credentials@v1
         if: ${{ github.event.inputs.command == 'apply' && github.event.inputs.connect-to-database == 'true' }}
         with:
