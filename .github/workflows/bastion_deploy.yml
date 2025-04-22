@@ -40,7 +40,7 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           submodules: recursive
           token: ${{ secrets.WORKFLOW_PAT }}
@@ -53,13 +53,13 @@ jobs:
       - uses: nationalarchives/tdr-github-actions/.github/actions/run-git-secrets@main
       - id: configure-aws-credentials
         if: ${{ github.event.inputs.command == 'destroy' }}
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
         continue-on-error: true
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/TDRGithubActionsRunDocumentRole${{ steps.set-environment-names.outputs.title-environment }}
           aws-region: eu-west-2
           role-session-name: DeleteUserRole
-      - uses: aws-actions/configure-aws-credentials@v1
+      - uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
         if: ${{ github.event.inputs.command == 'apply' && github.event.inputs.connect-to-database == 'true' }}
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/TDRGithubActionsInvokeCreateUserLambdaRole${{ steps.set-environment-names.outputs.title-environment }}
@@ -68,12 +68,12 @@ jobs:
       - name: Create user if connecting to the database
         if: ${{ github.event.inputs.command == 'apply' && github.event.inputs.connect-to-database == 'true' }}
         run: aws lambda invoke --function-name tdr-create-bastion-user-${{ github.event.inputs.environment }} out
-      - uses: aws-actions/configure-aws-credentials@v1
+      - uses: aws-actions/configure-aws-credentials@ececac1a45f3b08a01d2dd070d28d111c5fe6722
         with:
           role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubTerraformAssumeRole${{ steps.set-environment-names.outputs.title-environment }}
           aws-region: eu-west-2
           role-session-name: TerraformRole
-      - uses: hashicorp/setup-terraform@v1
+      - uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd
       - name: Run Terraform
         env:
           TF_VAR_tdr_account_number: ${{ secrets.ACCOUNT_NUMBER }}
