@@ -19,9 +19,19 @@ Any changes that affect the production database should be made by two people, ei
 6. Destroy the old version of the database
    * **Note**: only do this once satisfied everything is working and the restore DB instance is stable
 
+### Restoring from AWS Backup Vault
+
+In the event of a full environment the RDS databases will need to be restored from the AWS backup vault.
+
+The steps to do this are outlined in the documentation [Cross Account Recovery RDS](https://github.com/nationalarchives/ds-infrastructure-aws-backup/blob/main/docs/cross-account-recovery-rds.md)
+
+The steps cover points 1 and 2 above. The other steps 3 to 6 above still need to be undertaken once the RDS database is restored from the AWS backup vault. 
+
 ## Run terraform
 
 **Important Note**: restore-database uses v1.9.8 of Terraform. Ensure that Terraform v1.9.8 is installed before proceeding. Also ensure you have valid aws credentials. You should use intg,staging or prod account credentials.
+
+**Note**: this step is not necessary when restoring from the AWS backup vault.
 
 1. Set the relevant environment variables:
    * Update your AWS credentials with credentials for the TDR environment you are restoring the DB in.
