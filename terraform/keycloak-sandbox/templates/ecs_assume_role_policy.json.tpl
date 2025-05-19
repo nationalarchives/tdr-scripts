@@ -3,6 +3,11 @@
   "Statement": [
     {
       "Effect": "Allow",
+      "Condition": {
+        "StringEquals": {
+          "aws:SourceAccount": "${account_id}"
+        }
+      },
       "Action": [
         "sts:AssumeRole"
       ],

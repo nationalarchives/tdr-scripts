@@ -11,8 +11,10 @@ resource "aws_iam_role" "keycloak_ecs_execution" {
 }
 
 resource "aws_iam_role" "keycloak_ecs_task" {
-  name               = "keycloak_ecs_task_role_${var.environment}"
-  assume_role_policy = templatefile("./templates/ecs_assume_role_policy.json.tpl", {})
+  name = "keycloak_ecs_task_role_${var.environment}"
+  assume_role_policy = templatefile("./templates/ecs_assume_role_policy.json.tpl", {
+    account_id = data.aws_caller_identity.current.account_id
+  })
 
   tags = merge(
     local.common_tags,
@@ -32,6 +34,12 @@ data "aws_iam_policy_document" "ecs_assume_role" {
     principals {
       type        = "Service"
       identifiers = ["ecs-tasks.amazonaws.com"]
+    }
+
+    condition {
+      test     = "StringEquals"
+      variable = "aws:SourceAccount"
+      values   = [data.aws_caller_identity.current.account_id]
     }
   }
 }
