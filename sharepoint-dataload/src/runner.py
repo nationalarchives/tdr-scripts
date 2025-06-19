@@ -1,4 +1,4 @@
-from src import load_handler
+import load_handler
 
 user_id = 'place_holder'
 consignment_id = 'place_holder'

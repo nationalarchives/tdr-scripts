@@ -59,7 +59,7 @@ def load(event, context):
     if 'errors' in data:
         consignment_upload_status = 'CompletedWithIssues'
     upload_status_input = consignment_status_input(consignment_id, 'Upload', consignment_upload_status, user_id)
-    update_status_variables = {'addConsignmentStatusInput' : upload_status_input}
+    update_status_variables = {'updateConsignmentStatusInput' : upload_status_input}
     # send consignment api request to update consignment status in DB
     api_request(update_consignment_status_mutation, update_status_variables, client_id, client_secret)
     # trigger backend checks

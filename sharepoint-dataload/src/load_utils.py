@@ -16,15 +16,8 @@ add_files_mutation = """
 
 
 update_consignment_status_mutation = """
-        mutation addConsignmentStatus($addConsignmentStatusInput: ConsignmentStatusInput!) {
-            addConsignmentStatus(addConsignmentStatusInput: $addConsignmentStatusInput) {
-                consignmentStatusId
-                consignmentId
-                statusType
-                value
-                createdDatetime
-                modifiedDatetime
-            }
+        mutation updateConsignmentStatus($updateConsignmentStatusInput: ConsignmentStatusInput!) {
+            updateConsignmentStatus(updateConsignmentStatusInput: $updateConsignmentStatusInput)
         }
     """
 
