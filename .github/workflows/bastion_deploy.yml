@@ -53,13 +53,13 @@ jobs:
       - uses: nationalarchives/tdr-github-actions/.github/actions/run-git-secrets@main
       - id: configure-aws-credentials
         if: ${{ github.event.inputs.command == 'destroy' }}
-        uses: aws-actions/configure-aws-credentials@f24d7193d98baebaeacc7e2227925dd47cc267f5
+        uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
         continue-on-error: true
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/TDRGithubActionsRunDocumentRole${{ steps.set-environment-names.outputs.title-environment }}
           aws-region: eu-west-2
           role-session-name: DeleteUserRole
-      - uses: aws-actions/configure-aws-credentials@f24d7193d98baebaeacc7e2227925dd47cc267f5
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
         if: ${{ github.event.inputs.command == 'apply' && github.event.inputs.connect-to-database == 'true' }}
         with:
           role-to-assume: arn:aws:iam::${{ secrets.ACCOUNT_NUMBER }}:role/TDRGithubActionsInvokeCreateUserLambdaRole${{ steps.set-environment-names.outputs.title-environment }}
@@ -68,7 +68,7 @@ jobs:
       - name: Create user if connecting to the database
         if: ${{ github.event.inputs.command == 'apply' && github.event.inputs.connect-to-database == 'true' }}
         run: aws lambda invoke --function-name tdr-create-bastion-user-${{ github.event.inputs.environment }} out
-      - uses: aws-actions/configure-aws-credentials@f24d7193d98baebaeacc7e2227925dd47cc267f5
+      - uses: aws-actions/configure-aws-credentials@7474bc4690e29a8392af63c5b98e7449536d5c3a
         with:
           role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubTerraformAssumeRole${{ steps.set-environment-names.outputs.title-environment }}
           aws-region: eu-west-2
