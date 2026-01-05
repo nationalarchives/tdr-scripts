@@ -39,7 +39,7 @@ jobs:
         run: ./.github/scripts/run-and-approve-bastion-destroy.sh ${{ matrix.environment }}
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
-      - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
+      - uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@1c56dd1e838340ab53c7dc55dbbb974a062a6ae9 # v0.0.6
         if: ${{ steps.get-age.outputs.bastion-age == 'True' }}
         with:
           message: "*Bastion delete script* The bastion for ${{ matrix.environment }} has been deleted"
