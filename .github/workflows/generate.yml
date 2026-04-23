@@ -5,12 +5,6 @@ on:
     - cron: '30 11 * * *'
 jobs:
   generate:
-    strategy:
-      matrix:
-        teams: [
-          {team: "transfer-digital-records", slack_secret_name: "SLACK_WEBHOOK"},
-          {team: "digital-records-repository", slack_secret_name: "DR2_SLACK_WEBHOOK"}
-        ]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
@@ -27,11 +21,11 @@ jobs:
             git config --global user.name tna-da-bot
             cd release-versions
             pip install -r requirements.txt
-            python generate_release_file.py ${{ matrix.teams.team }}
+            python generate_release_file.py transfer-digital-records
             cd ..
         env:
           GITHUB_API_TOKEN: ${{ secrets.WORKFLOW_PAT }}
-          SLACK_URL: ${{ secrets[matrix.teams.slack_secret_name] }}
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK }}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: scripts-pages
@@ -39,8 +33,8 @@ jobs:
           path: scripts-pages
       - run: |
             cd scripts-pages 
-            mkdir -p docs/${{ matrix.teams.team }}
-            cp ../release-versions/${{ matrix.teams.team }}/output.html docs/${{ matrix.teams.team }}/
+            mkdir -p docs/transfer-digital-records
+            cp ../release-versions/transfer-digital-records/output.html docs/transfer-digital-records/
             git add docs
             git commit -m "Add release versions" || true
             git push
