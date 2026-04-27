@@ -3,17 +3,16 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '30 11 * * *'
+permissions: {}
 jobs:
   generate:
-    strategy:
-      matrix:
-        teams: [
-          {team: "transfer-digital-records", slack_secret_name: "SLACK_WEBHOOK"},
-          {team: "digital-records-repository", slack_secret_name: "DR2_SLACK_WEBHOOK"}
-        ]
+    permissions:
+      contents: write
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec # v6.3.0
@@ -27,20 +26,21 @@ jobs:
             git config --global user.name tna-da-bot
             cd release-versions
             pip install -r requirements.txt
-            python generate_release_file.py ${{ matrix.teams.team }}
+            python generate_release_file.py transfer-digital-records
             cd ..
         env:
           GITHUB_API_TOKEN: ${{ secrets.WORKFLOW_PAT }}
-          SLACK_URL: ${{ secrets[matrix.teams.slack_secret_name] }}
+          SLACK_URL: ${{ secrets.SLACK_WEBHOOK }}
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           ref: scripts-pages
           token: ${{ secrets.WORKFLOW_PAT }}
           path: scripts-pages
+          persist-credentials: true
       - run: |
             cd scripts-pages 
-            mkdir -p docs/${{ matrix.teams.team }}
-            cp ../release-versions/${{ matrix.teams.team }}/output.html docs/${{ matrix.teams.team }}/
+            mkdir -p docs/transfer-digital-records
+            cp ../release-versions/transfer-digital-records/output.html docs/transfer-digital-records/
             git add docs
             git commit -m "Add release versions" || true
             git push
