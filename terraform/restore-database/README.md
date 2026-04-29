@@ -34,7 +34,7 @@ The steps cover points 1 and 2 above. The other steps 3 to 6 above still need to
 **Note**: this step is not necessary when restoring from the AWS backup vault.
 
 1. Set the relevant environment variables:
-   * Update your AWS credentials with credentials for the TDR environment you are restoring the DB in.
+   * Update your AWS credentials and set ```AWS_PROFILE`` for the TDR environment you are restoring the DB in
    * `export TF_VAR_database=consignmentapi` or `export TF_VAR_database=keycloak`
    * `export DB_NO_DASH=$(echo $TF_VAR_database | sed  's/-//g')` (helper variable as some fields need `consignmentapi` and some need `consignment-api)
    * `export TF_VAR_tdr_account_number=xxxxxxxxxxx`
@@ -43,8 +43,10 @@ The steps cover points 1 and 2 above. The other steps 3 to 6 above still need to
    * `export TF_VAR_restore_time=YYYY-MM-DDThh:mm:ssZ` (optional if need to restore DB to a point in time instead of latest possible version. UTC format see further details here: [restore_time](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/db_instance#restore_time))
    * `export TF_VAR_instance_availability_zone=eu-west-2a` (this should match the availability zone of the instance being restored)
    * `export PROFILE=intg` (replace with staging or prod if using those environments)
+   * Check values are set ```printf "db=%s\nver=%s\n" "$TF_VAR_instance_identifier" "$TF_VAR_engine_version"```
+2. Check root.tf to ensure the new database will be created with the desired sizing
 2. Run the Terraform
-   * Update your AWS credentials with TDR Management account credentials
+   * Set ```AWS_PROFILE`` to the managemnet account
    * Terraform `plan` should be run first to ensure the restore DB has the correct setting / naming
    ```
    terraform init
@@ -52,7 +54,7 @@ The steps cover points 1 and 2 above. The other steps 3 to 6 above still need to
    terraform apply
    ```
 
-The restore may take 10-15 minutes depending on the size of the database when you run this. Terraform won't exit until the instance is created.
+The restore may take 20-30 minutes depending on the size of the database when you run this. Terraform won't exit until the instance is created.
 
 ## Update Policies to point to new database 
 
@@ -61,7 +63,7 @@ The `consignmentapi_ecs_task_role_{env}` or `KeycloakECSTaskRole{env}` role will
 
 ## Update SSM parameters to point to new database
 There will be a new entry in SSM parameter store called `/{env}/consignmentapi/database/url`
-* Copy the value from `/{env}/{database}/database/url` and overwrite the ssm parameter for `/intg/{database}/instance/url` with that value
+* Copy the value from `/{env}/{database}/database/url` and overwrite the ssm parameter for `/{env}/{database}/instance/url` with that value
 
 ## Restart the ECS service to pick up the new database
 
