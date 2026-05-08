@@ -28,7 +28,11 @@ resource "aws_db_instance" "restore_db_instance" {
   iam_database_authentication_enabled = true
   vpc_security_group_ids              = [data.aws_security_group.db_security_group.id]
   availability_zone                   = var.instance_availability_zone
+  enabled_cloudwatch_logs_exports     = ["postgresql"]
+  deletion_protection                 = true
+  backup_retention_period             = 7
   storage_encrypted                   = true
+  manage_master_user_password         = true 
 }
 
 resource "aws_iam_policy" "iam_db_authentication_policy" {

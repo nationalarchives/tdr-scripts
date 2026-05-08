@@ -6,30 +6,29 @@ This script is intended to be used to recover lost data in an emergency if it ha
 
 Any changes that affect the production database should be made by two people, either sitting together or screen sharing. This is to help prevent mistakes and for accountability.
 
+It may also be possible restore the database in situ using a process similar to this one https://national-archives.atlassian.net/wiki/spaces/DDT/pages/576716801/RDS+Backup+and+Restore+FAQ+and+SOPs - note that this has not been tested in TDR and is specific to DDT but the principals still apply.
+
+Note that the previously documented process of restoring from AWS Backup Vault has been removed (https://github.com/nationalarchives/ds-infrastructure-aws-backup/blob/main/docs/cross-account-recovery-rds.md) from this document. Said process will no longer work and must not be used.
+
+Currently the best documented approach is https://github.com/nationalarchives/terraform-aws-immutable-aws-backup/blob/main/docs/usage-restoring-your-backups.md  - This has not been used in anger for TDR at the time of writing.
+
 ## Outline of steps for restoring database from snapshot
+
 1. Identify which snapshot to restore from either the latest, or a point in time version
-2. Run the Terraform. This will
-    * Create a new database instance from the chosen snapshot version;
+2. Run the Terraform. This will:
+    * Create a new database instance from the chosen snapshot version
     * Update the database url SSM parameter to point to the new instance endpoint
     * Update the ECS task role to have permission to access the database using the database user
 3. Restart the ECS service to pick up the restored instance of the DB
 4. Check that the ECS service starts up and is running correctly with the restored instance of the DB
-   * If restoring the Keycloak DB instance depending on the snapshot version the client secrets stored in the SSM parameter store maybe out of snyc with the secrets held in the restore DB. If so the SSM parameter values will need to be updated to the values held in Keycloak
+   * If restoring the Keycloak DB instance depending on the snapshot version the client secrets stored in the SSM parameter store maybe out of sync with the secrets held in the restore DB. If so the SSM parameter values will need to be updated to the values held in Keycloak
 5. Update the Terraform environments state to match with the restored DB instance
 6. Destroy the old version of the database
    * **Note**: only do this once satisfied everything is working and the restore DB instance is stable
 
-### Restoring from AWS Backup Vault
-
-In the event of a full environment the RDS databases will need to be restored from the AWS backup vault.
-
-The steps to do this are outlined in the documentation [Cross Account Recovery RDS](https://github.com/nationalarchives/ds-infrastructure-aws-backup/blob/main/docs/cross-account-recovery-rds.md)
-
-The steps cover points 1 and 2 above. The other steps 3 to 6 above still need to be undertaken once the RDS database is restored from the AWS backup vault. 
-
 ## Run terraform
 
-**Important Note**: restore-database uses v1.9.8 of Terraform. Ensure that Terraform v1.9.8 is installed before proceeding. Also ensure you have valid aws credentials. You should use intg,staging or prod account credentials.
+**Important Note**: restore-database uses v1.12.2 of Terraform. Ensure that Terraform v1.12.2 is installed before proceeding. Also ensure you have valid aws credentials. You should use dev,intg,staging or prod account credentials.
 
 **Note**: this step is not necessary when restoring from the AWS backup vault.
 
@@ -44,9 +43,9 @@ The steps cover points 1 and 2 above. The other steps 3 to 6 above still need to
    * `export TF_VAR_instance_availability_zone=eu-west-2a` (this should match the availability zone of the instance being restored)
    * `export PROFILE=intg` (replace with staging or prod if using those environments)
    * Check values are set ```printf "db=%s\nver=%s\n" "$TF_VAR_instance_identifier" "$TF_VAR_engine_version"```
-2. Check root.tf to ensure the new database will be created with the desired sizing
-2. Run the Terraform
-   * Set ```AWS_PROFILE`` to the managemnet account
+2. Check root.tf to ensure the new database will be created with the desired configuration, notably instance size and multi-az.  The database this process is restoring from will likely have been created in the environments stack using the tdr-terraform-module/rds_instance module.  This process does not use that module and so the new instance may be different.
+3. Run the Terraform
+   * Set ```AWS_PROFILE`` to the management account
    * Terraform `plan` should be run first to ensure the restore DB has the correct setting / naming
    ```
    terraform init
@@ -54,7 +53,7 @@ The steps cover points 1 and 2 above. The other steps 3 to 6 above still need to
    terraform apply
    ```
 
-The restore may take 20-30 minutes depending on the size of the database when you run this. Terraform won't exit until the instance is created.
+The restore may take 30+ minutes depending on the size of the database when you run this. Terraform won't exit until the instance is created.
 
 ## Update Policies to point to new database 
 
@@ -62,6 +61,7 @@ The `consignmentapi_ecs_task_role_{env}` or `KeycloakECSTaskRole{env}` role will
 * copy the resource ARN of the `RestoredDbAccessPolicyIntg` and overwrite the resource ARN of the `TDRConsignmentApiAllowIAMAuthPolicy{env}` or `KeycloakECSTaskPolicy{env}`
 
 ## Update SSM parameters to point to new database
+
 There will be a new entry in SSM parameter store called `/{env}/consignmentapi/database/url`
 * Copy the value from `/{env}/{database}/database/url` and overwrite the ssm parameter for `/{env}/{database}/instance/url` with that value
 
@@ -97,8 +97,11 @@ In your local `tdr-terraform-environments` repo:
 8. Run Terraform apply again to ensure the state is stable, ie there are no longer changes appearing for the restored DB instance
 9. Restart the ECS task  again so it picks up the new stable DB instance.
 
+## Check backup tags
+This stack does not set the TNA backup tags.  Check this and action accordingly
+
 ## Cleanup SSM Parameter store and policies
 Once the system is up and running with the new database snapshot, the temporarily created ssm parameter and policies will need to be deleted.
-* Delete the `RestoredDbAccessPolicyIntg` policy
+* Delete the `RestoredDbAccessPolicy{env}` policy
 * Delete the `/{env}/{database}/database/url` ssm parameter
 * If relevant delete the old version of the DB
