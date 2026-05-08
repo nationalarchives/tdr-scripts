@@ -32,7 +32,7 @@ resource "aws_db_instance" "restore_db_instance" {
   deletion_protection                 = true
   backup_retention_period             = 7
   storage_encrypted                   = true
-  manage_master_user_password         = true 
+  manage_master_user_password         = true
 }
 
 resource "aws_iam_policy" "iam_db_authentication_policy" {
