@@ -10,7 +10,7 @@ It may also be possible restore the database in situ using a process similar to 
 
 Note that the previously documented process of restoring from AWS Backup Vault has been removed (https://github.com/nationalarchives/ds-infrastructure-aws-backup/blob/main/docs/cross-account-recovery-rds.md) from this document. Said process will no longer work and must not be used.
 
-Currently the best documented approach is https://github.com/nationalarchives/terraform-aws-immutable-aws-backup/blob/main/docs/usage-restoring-your-backups.md  - This has not been used in anger for TDR at the time of writing.
+Currently the best documented approach is https://github.com/nationalarchives/terraform-aws-immutable-aws-backup/blob/main/docs/usage-restoring-your-backups.md  - This has not been tested for TDR at the time of writing.
 
 ## Outline of steps for restoring database from snapshot
 
@@ -43,7 +43,7 @@ Currently the best documented approach is https://github.com/nationalarchives/te
    * `export TF_VAR_instance_availability_zone=eu-west-2a` (this should match the availability zone of the instance being restored)
    * `export PROFILE=intg` (replace with staging or prod if using those environments)
    * Check values are set ```printf "db=%s\nver=%s\n" "$TF_VAR_instance_identifier" "$TF_VAR_engine_version"```
-2. Check root.tf to ensure the new database will be created with the desired configuration, notably instance size and multi-az.  The database this process is restoring from will likely have been created in the environments stack using the tdr-terraform-module/rds_instance module.  This process does not use that module and so the new instance may be different.
+2. Check root.tf to ensure the new database will be created with the desired configuration, notably instance size and multi-az. The database this process is restoring from will likely have been created in the environments stack using the tdr-terraform-module/rds_instance module. This process does not use that module and so the new instance may be different.
 3. Run the Terraform
    * Set ```AWS_PROFILE`` to the management account
    * Terraform `plan` should be run first to ensure the restore DB has the correct setting / naming
