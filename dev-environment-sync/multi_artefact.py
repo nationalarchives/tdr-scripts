@@ -33,7 +33,7 @@ def deployed_version(session, url, repository, workflow, name, environment):
     """
     matching_runs = []
 
-    for page in range(1, 4)
+    for page in range(1, 4):
         response = session.get(
             url(repository, f"actions/workflows/{workflow}/runs"),
             params={"per_page": 100, "page": page, "status": "success"}
