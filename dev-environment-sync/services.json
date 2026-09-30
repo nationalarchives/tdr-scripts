@@ -65,7 +65,7 @@
     },
     {
       "repository": "tdr-draft-metadata-validator",
-      "workflow": "deploy-lambda.yml",
+      "workflow": "173073523",
       "deployments": [
         {
           "name": "draft-metadata-checks",
