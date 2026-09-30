@@ -34,14 +34,16 @@ def deployed_version(session, url, repository, workflow, name, environment):
     for page in range(1, 4):
         response = session.get(
             url(repository, f"actions/workflows/{workflow}/runs"),
-            params={"per_page": 100, "page": page, "status": "success"}
+            params={"per_page": 100, "page": page}
         )
         response.raise_for_status()
         runs = response.json().get("workflow_runs", [])
         if not runs:
             break
 
-        for run in runs:
+        successful_runs = [r for r in runs if r.get("conclusion") == "success"]
+
+        for run in successful_runs:
             parsed = _parse_run_name(run.get("name") or "")
             if not parsed:
                 continue
