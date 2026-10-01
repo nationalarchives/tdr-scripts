@@ -5,11 +5,12 @@
     "'Creating a TDR environment from scratch' service recovery documentation.",
     "Each entry may declare:",
     "  repository: the GitHub repository name (required)",
-    "  workflow:   the workflow file to dispatch (defaults to deploy.yml)",
+    "  workflow_id: the numeric ID of the workflow to dispatch (defaults to",
+    "               the deploy.yml file name). Use the ID rather than the",
+    "               file name, as GitHub can return stale run history for",
+    "               workflows looked up by file name (see the README)",
     "  version_input: the name of the workflow input taking the version",
     "                 (defaults to to-deploy)",
-    "  version_inputs: where a workflow takes more than one version input,",
-    "                  all of which are given the release-intg version",
     "  extra_inputs: any additional static inputs the workflow requires",
     "  enabled: set to false to skip the repository (see the todo field)",
     "  deployments: for repositories which deploy more than one artefact from",
@@ -65,7 +66,7 @@
     },
     {
       "repository": "tdr-draft-metadata-validator",
-      "workflow": "173073523",
+      "workflow_id": "173073523",
       "deployments": [
         {
           "name": "draft-metadata-checks",
@@ -118,7 +119,7 @@
     },
     {
       "repository": "da-reference-generator",
-      "workflow": "tdr_deploy.yml",
+      "workflow_id": "64516773",
       "terraform_status_env": "REFERENCE_GENERATOR_TERRAFORM_STATUS"
     }
   ]

@@ -59,7 +59,13 @@ A python script which brings the `dev` environment in line with `intg`. For each
 
 It runs daily at 05:00 via [the sync dev environment workflow](.github/workflows/sync-dev-environment.yml), which also supports `workflow_dispatch` with a `dry-run` option.
 
-Repositories with non standard deploy workflows are handled through the `workflow`, `version_input`, `extra_inputs` and `deployments` fields in `services.json`, for example `tdr-keycloak-user-management` (which uses a `toDeploy` input) and `tdr-draft-metadata-validator` (which deploys two lambdas from one repository).
+Repositories with non standard deploy workflows are handled through the `workflow_id`, `version_input`, `extra_inputs` and `deployments` fields in `services.json`, for example `tdr-keycloak-user-management` (which uses a `toDeploy` input) and `tdr-draft-metadata-validator` (which deploys two lambdas from one repository).
+
+Where a repository's deploy workflow is not `deploy.yml`, set `workflow_id` to the workflow's numeric ID rather than its file name. GitHub caches API responses for workflows looked up by file name, which can return stale run history (e.g. missing the most recent deployments) and cause an out of date version to be deployed. Find a workflow's ID with:
+
+```bash
+gh api repos/nationalarchives/<repository>/actions/workflows/<workflow file name> --jq .id
+```
 
 #### Running locally
 

@@ -168,8 +168,8 @@ def deployments_for(service):
 
 def sync_service(service, results):
     repository = service["repository"]
-    workflow = service.get("workflow", DEFAULT_WORKFLOW)
-    version_inputs = service.get("version_inputs", [service.get("version_input", DEFAULT_VERSION_INPUT)])
+    workflow = service.get("workflow_id", DEFAULT_WORKFLOW)
+    version_input = service.get("version_input", DEFAULT_VERSION_INPUT)
     print(f"{repository}:")
 
     if service.get("enabled", True) is False:
@@ -228,9 +228,8 @@ def sync_service(service, results):
 
     for deployment in deployments_for(service):
         name = deployment.get("name", repository)
-        inputs = {"environment": TARGET_ENVIRONMENT}
         deployed_value = intg_version[1:] if service.get("strip_v_prefix") and intg_version.startswith("v") else intg_version
-        inputs.update({version_input: deployed_value for version_input in version_inputs})
+        inputs = {"environment": TARGET_ENVIRONMENT, version_input: deployed_value}
         inputs.update(service.get("extra_inputs", {}))
         inputs.update(deployment.get("extra_inputs", {}))
         if dispatch(repository, workflow, inputs):
