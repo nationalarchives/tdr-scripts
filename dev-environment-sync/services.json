@@ -96,9 +96,6 @@
       "repository": "tdr-service-unavailable"
     },
     {
-      "repository": "tdr-consignment-export-authoriser"
-    },
-    {
       "repository": "tdr-redacted-files"
     },
     {
